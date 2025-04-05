@@ -52,8 +52,13 @@ const AgentForm = ({ existingAgent, onSuccess, onCancel }: AgentFormProps) => {
         await updateAgent(existingAgent.id, values);
         toast.success("Atendente atualizado com sucesso");
       } else {
-        // Create new agent
-        await createAgent({ ...values, ativo: true });
+        // Create new agent - ensure email is always provided since it's required
+        await createAgent({
+          nome: values.nome,
+          email: values.email, // This is now explicitly provided
+          url_imagem: values.url_imagem,
+          ativo: true
+        });
         toast.success("Atendente criado com sucesso");
       }
       

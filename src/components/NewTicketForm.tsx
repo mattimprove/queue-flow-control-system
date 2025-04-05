@@ -52,8 +52,14 @@ const NewTicketForm = ({ onTicketCreated }: NewTicketFormProps) => {
     try {
       setIsSubmitting(true);
       
+      // Ensure all required fields are explicitly provided
       const newTicketData: Omit<Ticket, "id" | "data_criado" | "data_atualizado"> = {
-        ...values,
+        nome: values.nome,
+        telefone: values.telefone,
+        user_ns: values.user_ns,
+        motivo: values.motivo,
+        setor: values.setor,
+        email_atendente: values.email_atendente,
         etapa_numero: 1 // Start with status "Aguardando"
       };
       
