@@ -33,7 +33,7 @@ const TicketTabs = ({
 
   return (
     <Tabs defaultValue="all" className="w-full">
-      <TabsList className={`grid ${sortedStages.length > 0 ? `grid-cols-${sortedStages.length + 1}` : "grid-cols-1"} mb-6`}>
+      <TabsList className="flex mb-6 w-full justify-start overflow-x-auto">
         {/* "All" tab is always present */}
         <TabsTrigger value="all" className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-slate-400" />
@@ -88,4 +88,3 @@ const TicketTabs = ({
 };
 
 export default TicketTabs;
-
