@@ -358,25 +358,3 @@ export const deleteAgent = async (id: string): Promise<void> => {
     throw error;
   }
 };
-
-// Habilitar realtime para tabela tickets
-export const enableRealtimeForTickets = async (): Promise<void> => {
-  try {
-    // Configurar realtime para a tabela tickets
-    const { error } = await supabase.rpc('supabase_realtime', {
-      table: 'tickets',
-      action: 'enable'
-    });
-    
-    if (error) {
-      console.error("Error enabling realtime for tickets:", error);
-    } else {
-      console.log("Realtime enabled for tickets table");
-    }
-  } catch (error) {
-    console.error("Error in enableRealtimeForTickets:", error);
-  }
-};
-
-// Executar na inicialização para garantir que o realtime esteja habilitado
-enableRealtimeForTickets().catch(console.error);
