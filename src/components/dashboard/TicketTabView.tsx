@@ -34,7 +34,7 @@ const TicketTabView = ({
 }: TicketTabViewProps) => {
   // Filter and sort states
   const [filteredTickets, setFilteredTickets] = useState<Ticket[]>(tickets);
-  const [selectedSector, setSelectedSector] = useState<string>("");
+  const [selectedSector, setSelectedSector] = useState<string>("all");
   const [agentEmailFilter, setAgentEmailFilter] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc"); // desc = newest first
   
@@ -46,7 +46,7 @@ const TicketTabView = ({
     let result = [...tickets];
     
     // Apply sector filter if selected
-    if (selectedSector) {
+    if (selectedSector && selectedSector !== "all") {
       result = result.filter(ticket => ticket.setor === selectedSector);
     }
     
@@ -79,7 +79,7 @@ const TicketTabView = ({
   
   // Clear all filters
   const clearFilters = () => {
-    setSelectedSector("");
+    setSelectedSector("all");
     setAgentEmailFilter("");
     setSortOrder("desc");
   };
@@ -109,7 +109,7 @@ const TicketTabView = ({
                 <SelectValue placeholder="Todos os setores" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os setores</SelectItem>
+                <SelectItem value="all">Todos os setores</SelectItem>
                 {sectors.map(sector => (
                   <SelectItem key={sector} value={sector}>{sector}</SelectItem>
                 ))}
