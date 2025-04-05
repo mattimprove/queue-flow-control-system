@@ -16,11 +16,14 @@ import { getTickets, getStages } from "@/services";
 import { getTimeStatus } from "@/utils/timeUtils";
 import { Stage, Ticket } from "@/types";
 import { toast } from "sonner";
+import { getAttendantPerformance } from "@/services/performance";
+import { useRankingStore } from "@/services/ranking";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { settings } = useSettings();
+  const { updateRanking } = useRankingStore();
   
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [stages, setStages] = useState<Stage[]>([]);
@@ -30,6 +33,28 @@ const DashboardPage = () => {
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
   const [lastCheckTime, setLastCheckTime] = useState<number>(Date.now());
   const [lastAlertCheck, setLastAlertCheck] = useState<number>(Date.now());
+  
+  // Função adicional para verificar o ranking regularmente
+  useEffect(() => {
+    // Verificação inicial
+    const checkPerformance = async () => {
+      try {
+        console.log("🏆 DashboardPage: Verificando performance para atualização do pódio");
+        const performance = await getAttendantPerformance();
+        if (performance.length > 0) {
+          updateRanking(performance, settings);
+        }
+      } catch (error) {
+        console.error("Erro ao verificar performance:", error);
+      }
+    };
+    
+    // Verificar na inicialização e a cada 5 minutos
+    checkPerformance();
+    const performanceInterval = setInterval(checkPerformance, 5 * 60 * 1000);
+    
+    return () => clearInterval(performanceInterval);
+  }, [updateRanking, settings]);
   
   const loadData = async () => {
     try {

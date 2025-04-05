@@ -46,11 +46,15 @@ export const useRankingStore = create<PodiumState>((set, get) => ({
     
     // Verificar mudanças
     if (newPodium.length > 0) {
+      console.log("🏆 Verificando mudanças no pódio:", { oldPodium, newPodium });
+      
       for (const newPos of newPodium) {
         const oldPosition = oldPodium.find(old => old.id === newPos.id);
         
         // Se a pessoa não estava no pódio antes
         if (!oldPosition) {
+          console.log(`🏆 ${newPos.nome} entrou no pódio! Agora está em ${newPos.position}º lugar!`);
+          
           // Mostrar toast e confete
           toast.success(
             `${newPos.nome.split(' ')[0]} entrou no pódio! Agora está em ${newPos.position}º lugar!`,
@@ -63,6 +67,7 @@ export const useRankingStore = create<PodiumState>((set, get) => ({
           );
           
           // Tocar som e mostrar confete
+          console.log(`🔊 Tocando som para novo participante no pódio: ${newPos.nome}`);
           playSound(settings.podiumSound, settings.soundVolume);
           set({
             showConfetti: true,
@@ -74,6 +79,8 @@ export const useRankingStore = create<PodiumState>((set, get) => ({
         }
         // Se melhorou a posição no pódio
         else if (oldPosition.position > newPos.position) {
+          console.log(`🏆 ${newPos.nome} subiu para ${newPos.position}º lugar no pódio!`);
+          
           // Mostrar toast e confete
           toast.success(
             `${newPos.nome.split(' ')[0]} subiu para ${newPos.position}º lugar no pódio!`,
@@ -87,6 +94,7 @@ export const useRankingStore = create<PodiumState>((set, get) => ({
           
           // Tocar som e mostrar confete para 1º lugar ou mudanças normais
           if (newPos.position === 1) {
+            console.log(`🔊 Tocando som para novo primeiro lugar: ${newPos.nome}`);
             playSound(settings.firstPlaceSound, settings.soundVolume);
             set({
               showConfetti: true,
@@ -94,6 +102,7 @@ export const useRankingStore = create<PodiumState>((set, get) => ({
               celebratingAttendant: newPos.nome.split(' ')[0]
             });
           } else {
+            console.log(`🔊 Tocando som para melhoria no pódio: ${newPos.nome}`);
             playSound(settings.podiumSound, settings.soundVolume);
             set({
               showConfetti: true,
@@ -115,6 +124,7 @@ export const useRankingStore = create<PodiumState>((set, get) => ({
   },
   
   clearCelebration: () => {
+    console.log("🧹 Limpando celebração do pódio");
     set({
       showConfetti: false,
       celebratingAttendant: null

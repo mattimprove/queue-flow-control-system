@@ -17,12 +17,14 @@ const GlobalRankingMonitor = () => {
     // Função para carregar dados de ranking
     const loadRankingData = async () => {
       try {
+        console.log("🏆 GlobalRankingMonitor: Buscando dados de desempenho...");
         const performance = await getAttendantPerformance();
         if (performance.length > 0) {
+          console.log(`🏆 GlobalRankingMonitor: Atualizando ranking com ${performance.length} atendentes`);
           updateRanking(performance, settings);
         }
       } catch (error) {
-        console.error("Erro ao carregar dados de ranking global:", error);
+        console.error("❌ Erro ao carregar dados de ranking global:", error);
       }
     };
 
@@ -40,15 +42,12 @@ const GlobalRankingMonitor = () => {
     };
   }, [updateRanking, settings]);
 
-  // Renderizar o componente de confete quando necessário
   return (
-    <>
-      <PodiumConfetti 
-        isActive={showConfetti}
-        type={confettiType}
-        onComplete={clearCelebration}
-      />
-    </>
+    <PodiumConfetti 
+      isActive={showConfetti}
+      type={confettiType}
+      onComplete={clearCelebration}
+    />
   );
 };
 

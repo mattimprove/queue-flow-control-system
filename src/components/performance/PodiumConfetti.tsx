@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 
 type ConfettiType = 'podium' | 'first-place';
@@ -11,12 +11,8 @@ interface PodiumConfettiProps {
 }
 
 const PodiumConfetti = ({ isActive, type = 'podium', onComplete }: PodiumConfettiProps) => {
-  const confettiRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    if (isActive && confettiRef.current) {
-      const rect = confettiRef.current.getBoundingClientRect();
-      
+    if (isActive) {
       // Configurações baseadas no tipo
       let colors: string[] = ['#FFD700', '#C0C0C0', '#CD7F32'];  // Ouro, Prata, Bronze
       let particleCount = 100;
@@ -30,12 +26,21 @@ const PodiumConfetti = ({ isActive, type = 'podium', onComplete }: PodiumConfett
       }
       
       // Criar confete do lado esquerdo
-      const leftConfetti = confetti.create(document.createElement('canvas'), {
+      const leftConfettiCanvas = document.createElement('canvas');
+      document.body.appendChild(leftConfettiCanvas);
+      leftConfettiCanvas.style.position = 'fixed';
+      leftConfettiCanvas.style.inset = '0';
+      leftConfettiCanvas.style.width = '100%';
+      leftConfettiCanvas.style.height = '100%';
+      leftConfettiCanvas.style.pointerEvents = 'none';
+      leftConfettiCanvas.style.zIndex = '9999';
+      
+      const leftConfettiInstance = confetti.create(leftConfettiCanvas, {
         resize: true,
         useWorker: true,
       });
       
-      leftConfetti({
+      leftConfettiInstance({
         particleCount,
         origin: { x: 0.2, y: 0.5 },
         spread,
@@ -46,12 +51,21 @@ const PodiumConfetti = ({ isActive, type = 'podium', onComplete }: PodiumConfett
       });
       
       // Criar confete do lado direito
-      const rightConfetti = confetti.create(document.createElement('canvas'), {
+      const rightConfettiCanvas = document.createElement('canvas');
+      document.body.appendChild(rightConfettiCanvas);
+      rightConfettiCanvas.style.position = 'fixed';
+      rightConfettiCanvas.style.inset = '0';
+      rightConfettiCanvas.style.width = '100%';
+      rightConfettiCanvas.style.height = '100%';
+      rightConfettiCanvas.style.pointerEvents = 'none';
+      rightConfettiCanvas.style.zIndex = '9999';
+      
+      const rightConfettiInstance = confetti.create(rightConfettiCanvas, {
         resize: true,
         useWorker: true,
       });
       
-      rightConfetti({
+      rightConfettiInstance({
         particleCount,
         origin: { x: 0.8, y: 0.5 },
         spread,
@@ -61,20 +75,17 @@ const PodiumConfetti = ({ isActive, type = 'podium', onComplete }: PodiumConfett
         shapes: ['star', 'circle'],
       });
       
-      // Notificar quando completar
+      // Limpar e notificar quando completar
       setTimeout(() => {
+        document.body.removeChild(leftConfettiCanvas);
+        document.body.removeChild(rightConfettiCanvas);
         if (onComplete) onComplete();
       }, 2500);
     }
   }, [isActive, type, onComplete]);
 
-  return (
-    <div 
-      ref={confettiRef} 
-      className="fixed inset-0 pointer-events-none z-50"
-      style={{ display: isActive ? 'block' : 'none' }}
-    />
-  );
+  // Não precisamos de um elemento DOM, pois os canvas são criados dinamicamente
+  return null;
 };
 
 export default PodiumConfetti;
