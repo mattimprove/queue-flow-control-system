@@ -17,8 +17,28 @@ export const availableSoundFiles: string[] = [
   "podium.mp3",
   "firstPlace.mp3",
   "alerta.mp3", // Adding available file from read-only-files
-  // Add other sound files that exist in the public/sounds directory
 ];
+
+// Function to get nice display name from a filename
+export const getSoundDisplayName = (filename: string): string => {
+  // Remove file extension
+  const nameWithoutExtension = filename.replace('.mp3', '');
+  
+  // Make it more readable (capitalize first letter, handle special cases)
+  switch(nameWithoutExtension) {
+    case 'notification': return 'Som de Notificação';
+    case 'alert': return 'Som de Alerta';
+    case 'beep': return 'Som de Beep';
+    case 'podium': return 'Som de Pódio';
+    case 'firstPlace': return 'Som de Primeiro Lugar';
+    case 'alerta': return 'Som de Alerta (Alt)';
+    default:
+      // For custom files, capitalize first letter and add spaces before uppercase letters
+      return nameWithoutExtension
+        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+        .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
+  }
+};
 
 // Map to store preloaded audio objects
 const audioCache: Record<string, HTMLAudioElement> = {};
