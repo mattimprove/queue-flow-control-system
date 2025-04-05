@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Ticket, Stage } from "@/types";
 import TicketCard from "./TicketCard";
-import { updateTicket } from "@/services/dataService";
+import { updateTicket, getTickets } from "@/services/dataService";
 import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { getTimeStatus } from "@/utils/timeUtils";
@@ -14,6 +14,7 @@ import {
   debugAudioSystems,
   preloadSounds
 } from "@/services/notificationService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -69,6 +70,48 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
       document.removeEventListener("touchstart", handleUserInteraction);
     };
   }, []);
+
+  // Set up realtime subscription for tickets table
+  useEffect(() => {
+    // Create a Supabase realtime channel
+    const channel = supabase
+      .channel('public:tickets')
+      .on('postgres_changes', 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'tickets' 
+        }, 
+        () => {
+          console.log('Novo ticket detectado!');
+          // Chamar função para atualizar a lista de tickets
+          onTicketChange();
+          // Tocar som de notificação para novos tickets
+          playSound('notification', settings.soundVolume);
+          toast.info('Novo chamado recebido!');
+        }
+      )
+      .on('postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'tickets'
+        },
+        () => {
+          console.log('Ticket atualizado!');
+          onTicketChange();
+        }
+      )
+      .subscribe();
+      
+    console.log('Inscrição em tempo real dos tickets iniciada');
+
+    // Cleanup: unsubscribe on component unmount
+    return () => {
+      console.log('Desativando inscrição em tempo real');
+      supabase.removeChannel(channel);
+    };
+  }, [onTicketChange, settings.soundVolume]);
   
   // Check if we need to play alert sounds
   useEffect(() => {

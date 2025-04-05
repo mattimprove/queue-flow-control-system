@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -78,7 +77,6 @@ const DashboardPage = () => {
           settings.criticalTimeMinutes
         );
         
-        // Verificamos se o ticket está em estado crítico e se não foi dispensado anteriormente
         if (timeInfo.minutes >= settings.fullScreenAlertMinutes && !dismissedAlerts.has(ticket.id)) {
           setCriticalTicket(ticket);
           return;
@@ -102,7 +100,6 @@ const DashboardPage = () => {
   ).length;
 
   const handleCloseAlert = (ticketId: string) => {
-    // Adiciona o ticket à lista de alertas dispensados
     setDismissedAlerts(prev => {
       const newSet = new Set(prev);
       newSet.add(ticketId);
@@ -190,7 +187,6 @@ const DashboardPage = () => {
           <NewTicketForm
             onTicketCreated={() => {
               setNewTicketDialogOpen(false);
-              loadData();
             }}
           />
         </DialogContent>
