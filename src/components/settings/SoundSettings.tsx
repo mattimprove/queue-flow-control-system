@@ -181,6 +181,8 @@ const SoundSettings = ({
                 <SelectItem value="notification">Notificação</SelectItem>
                 <SelectItem value="alert">Alerta</SelectItem>
                 <SelectItem value="beep">Beep</SelectItem>
+                <SelectItem value="podium">Som de Pódio</SelectItem>
+                <SelectItem value="firstPlace">Som de 1º Lugar</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />

@@ -4,6 +4,8 @@ export const soundOptions = {
   notification: "/sounds/notification.mp3",
   alert: "/sounds/alert.mp3",
   beep: "/sounds/beep.mp3",
+  podium: "/sounds/podium.mp3",
+  firstPlace: "/sounds/firstPlace.mp3",
 };
 
 // Map to store preloaded audio objects

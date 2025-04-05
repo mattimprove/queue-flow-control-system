@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -12,6 +12,8 @@ import { getAttendantPerformance, getAttendantStrikes, AttendantPerformance, Str
 import { RefreshCw, Trophy, AlertTriangle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import { playSound } from "@/services/notificationService";
 
 const PerformancePage = () => {
   const navigate = useNavigate();
@@ -22,6 +24,9 @@ const PerformancePage = () => {
   const [performanceData, setPerformanceData] = useState<AttendantPerformance[]>([]);
   const [strikesData, setStrikesData] = useState<StrikeData[]>([]);
   const [viewMode, setViewMode] = useState<"desktop" | "mobile">("desktop");
+  
+  // References to previous podium positions for comparison
+  const prevPodiumRef = useRef<{id: string, position: number}[]>([]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -48,13 +53,80 @@ const PerformancePage = () => {
         getAttendantStrikes(settings.criticalTimeMinutes)
       ]);
       
-      setPerformanceData(performance);
+      setPerformanceData(previous => {
+        // Check for podium changes and show notifications
+        if (previous.length > 0 && performance.length > 0) {
+          checkPodiumChanges(previous, performance);
+        }
+        
+        // Update the reference to the current podium
+        prevPodiumRef.current = performance.slice(0, 3).map((attendant, index) => ({
+          id: attendant.id,
+          position: index + 1
+        }));
+        
+        return performance;
+      });
+      
       setStrikesData(strikes);
     } catch (error) {
       console.error("Erro ao carregar dados de desempenho:", error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Function to check for podium changes and trigger notifications
+  const checkPodiumChanges = (oldData: AttendantPerformance[], newData: AttendantPerformance[]) => {
+    // Get top 3 from previous data
+    const oldPodium = oldData.slice(0, 3).map((attendant, index) => ({
+      id: attendant.id,
+      nome: attendant.nome,
+      position: index + 1
+    }));
+    
+    // Get top 3 from new data
+    const newPodium = newData.slice(0, 3).map((attendant, index) => ({
+      id: attendant.id,
+      nome: attendant.nome,
+      position: index + 1
+    }));
+
+    // Check for changes in positions
+    newPodium.forEach(newPos => {
+      const oldPosition = oldPodium.find(old => old.id === newPos.id);
+      
+      // If this person wasn't in the podium before
+      if (!oldPosition) {
+        toast.success(
+          `${newPos.nome.split(' ')[0]} entrou no pódio! Agora está em ${newPos.position}º lugar!`, 
+          {
+            duration: 5000,
+            icon: "🏆"
+          }
+        );
+        
+        // Play podium sound
+        playSound("podium", settings.soundVolume);
+      }
+      // If this person improved their position in the podium
+      else if (oldPosition.position > newPos.position) {
+        toast.success(
+          `${newPos.nome.split(' ')[0]} subiu para ${newPos.position}º lugar no pódio!`,
+          {
+            duration: 5000,
+            icon: "🎉"
+          }
+        );
+        
+        // Play podium sound or first place sound if they reached #1
+        if (newPos.position === 1) {
+          playSound("firstPlace", settings.soundVolume);
+        } else {
+          playSound("podium", settings.soundVolume);
+        }
+      }
+    });
   };
   
   const handleRefresh = () => {
