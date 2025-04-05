@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Filter, ArrowDown, ArrowUp } from "lucide-react";
 import TicketList from "@/components/TicketList";
-import { Ticket, Stage } from "@/types";
+import { Ticket, Stage, Agent } from "@/types";
+import { getAgents } from "@/services";
 
 interface TicketTabViewProps {
   tickets: Ticket[];
@@ -35,11 +36,30 @@ const TicketTabView = ({
   // Filter and sort states
   const [filteredTickets, setFilteredTickets] = useState<Ticket[]>(tickets);
   const [selectedSector, setSelectedSector] = useState<string>("all");
-  const [agentEmailFilter, setAgentEmailFilter] = useState<string>("");
+  const [selectedAgent, setSelectedAgent] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc"); // desc = newest first
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [isLoadingAgents, setIsLoadingAgents] = useState(false);
   
   // Get unique sectors from tickets
   const sectors = Array.from(new Set(tickets.filter(t => t.setor).map(t => t.setor as string)));
+
+  // Fetch agents on component mount
+  useEffect(() => {
+    const loadAgents = async () => {
+      setIsLoadingAgents(true);
+      try {
+        const agentsData = await getAgents();
+        setAgents(agentsData);
+      } catch (error) {
+        console.error("Error loading agents:", error);
+      } finally {
+        setIsLoadingAgents(false);
+      }
+    };
+    
+    loadAgents();
+  }, []);
 
   // Update filtered tickets whenever tickets, filters, or sort order change
   useEffect(() => {
@@ -50,11 +70,10 @@ const TicketTabView = ({
       result = result.filter(ticket => ticket.setor === selectedSector);
     }
     
-    // Apply agent email filter if entered
-    if (agentEmailFilter.trim()) {
-      const filterLower = agentEmailFilter.trim().toLowerCase();
+    // Apply agent filter if selected
+    if (selectedAgent && selectedAgent !== "all") {
       result = result.filter(ticket => 
-        ticket.email_atendente.toLowerCase().includes(filterLower)
+        ticket.email_atendente === selectedAgent
       );
     }
     
@@ -68,7 +87,7 @@ const TicketTabView = ({
     });
     
     setFilteredTickets(result);
-  }, [tickets, selectedSector, agentEmailFilter, sortOrder]);
+  }, [tickets, selectedSector, selectedAgent, sortOrder]);
   
   // Filter tickets by status for each tab
   const getTicketsByStatus = (status: number | null) => {
@@ -80,7 +99,7 @@ const TicketTabView = ({
   // Clear all filters
   const clearFilters = () => {
     setSelectedSector("all");
-    setAgentEmailFilter("");
+    setSelectedAgent("all");
     setSortOrder("desc");
   };
   
@@ -120,16 +139,20 @@ const TicketTabView = ({
           {/* Agent Email Filter */}
           <div>
             <label htmlFor="agent-filter" className="text-xs text-muted-foreground mb-1 block">
-              Filtrar por Email do Atendente
+              Filtrar por Atendente
             </label>
-            <Input
-              id="agent-filter"
-              type="text"
-              placeholder="Email do atendente"
-              value={agentEmailFilter}
-              onChange={(e) => setAgentEmailFilter(e.target.value)}
-              className="w-full"
-            />
+            <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+              <SelectTrigger id="agent-filter" className="w-full">
+                <SelectValue placeholder="Todos os atendentes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os atendentes</SelectItem>
+                {agents.map(agent => (
+                  <SelectItem key={agent.id} value={agent.email}>{agent.nome} ({agent.email})</SelectItem>
+                ))}
+                {isLoadingAgents && <SelectItem value="loading" disabled>Carregando...</SelectItem>}
+              </SelectContent>
+            </Select>
           </div>
           
           {/* Sort Order & Clear Filters */}
