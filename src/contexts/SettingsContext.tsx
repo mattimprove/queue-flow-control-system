@@ -15,7 +15,11 @@ const defaultSettings: AppSettings = {
   criticalTimeMinutes: 20,
   fullScreenAlertMinutes: 30,
   soundVolume: 0.5,
-  soundType: "notification",
+  // Sons individuais para cada tipo de evento
+  notificationSound: "notification",
+  alertSound: "alert",
+  podiumSound: "podium",
+  firstPlaceSound: "firstPlace",
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);

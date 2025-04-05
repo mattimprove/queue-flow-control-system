@@ -7,16 +7,18 @@ import { AppSettings } from "@/types";
 
 interface SoundTypeSelectorProps {
   form: UseFormReturn<AppSettings>;
+  soundType: "notificationSound" | "alertSound" | "podiumSound" | "firstPlaceSound";
+  label: string;
 }
 
-const SoundTypeSelector = ({ form }: SoundTypeSelectorProps) => {
+const SoundTypeSelector = ({ form, soundType, label }: SoundTypeSelectorProps) => {
   return (
     <FormField
       control={form.control}
-      name="soundType"
+      name={soundType}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Tipo de Som</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <Select
             onValueChange={field.onChange}
             defaultValue={field.value}
@@ -27,11 +29,12 @@ const SoundTypeSelector = ({ form }: SoundTypeSelectorProps) => {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="notification">Som de Novo Atendimento</SelectItem>
-              <SelectItem value="alert">Som de Alerta de Atraso</SelectItem>
-              <SelectItem value="beep">Som de Beep (Geral)</SelectItem>
-              <SelectItem value="podium">Som de Entrada no Pódio</SelectItem>
+              <SelectItem value="notification">Som de Notificação</SelectItem>
+              <SelectItem value="alert">Som de Alerta</SelectItem>
+              <SelectItem value="beep">Som de Beep</SelectItem>
+              <SelectItem value="podium">Som de Pódio</SelectItem>
               <SelectItem value="firstPlace">Som de Primeiro Lugar</SelectItem>
+              <SelectItem value="none">Sem Som</SelectItem>
             </SelectContent>
           </Select>
           <FormMessage />

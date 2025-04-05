@@ -21,7 +21,10 @@ const settingsSchema = z.object({
   criticalTimeMinutes: z.number().min(1).max(240),
   fullScreenAlertMinutes: z.number().min(1).max(360),
   soundVolume: z.number().min(0).max(1),
-  soundType: z.string(),
+  notificationSound: z.string(),
+  alertSound: z.string(),
+  podiumSound: z.string(),
+  firstPlaceSound: z.string(),
 });
 
 const AppSettingsForm = () => {
@@ -49,7 +52,10 @@ const AppSettingsForm = () => {
       criticalTimeMinutes: 20,
       fullScreenAlertMinutes: 30,
       soundVolume: 0.5,
-      soundType: "notification",
+      notificationSound: "notification",
+      alertSound: "alert",
+      podiumSound: "podium",
+      firstPlaceSound: "firstPlace",
     });
     toast.info("Configurações restauradas para os valores padrão");
   };

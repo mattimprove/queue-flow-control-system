@@ -100,7 +100,35 @@ const SoundSettings = ({
       
       <AudioPermissionBanner audioPermissionGranted={audioPermissionGranted} />
       
-      <SoundTypeSelector form={form} />
+      <div className="space-y-4 border rounded-md p-4">
+        <h3 className="text-md font-medium">Selecione sons para cada evento</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SoundTypeSelector 
+            form={form} 
+            soundType="notificationSound" 
+            label="Som de Novo Atendimento" 
+          />
+          
+          <SoundTypeSelector 
+            form={form} 
+            soundType="alertSound" 
+            label="Som de Alerta de Atraso" 
+          />
+          
+          <SoundTypeSelector 
+            form={form} 
+            soundType="podiumSound" 
+            label="Som de Entrada no Pódio" 
+          />
+          
+          <SoundTypeSelector 
+            form={form} 
+            soundType="firstPlaceSound" 
+            label="Som de Primeiro Lugar" 
+          />
+        </div>
+      </div>
       
       <VolumeControl 
         form={form} 
@@ -109,7 +137,7 @@ const SoundSettings = ({
       />
       
       <SoundTester 
-        soundType={form.getValues("soundType")}
+        soundType={form.getValues("notificationSound")}
         volume={form.getValues("soundVolume")}
         isMuted={isMuted}
         audioPermissionGranted={audioPermissionGranted}

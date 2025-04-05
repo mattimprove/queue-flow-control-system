@@ -18,6 +18,32 @@ export { playSound, stopSound, startAlertNotification, stopAlertNotification, is
 import { requestNotificationPermission, sendBrowserNotification } from './notifications/browserNotifications';
 export { requestNotificationPermission, sendBrowserNotification };
 
+// Função auxiliar para reproduzir som com base nas configurações do usuário
+export const playSoundByEventType = (
+  eventType: "notification" | "alert" | "podium" | "firstPlace", 
+  settings: any, 
+  volume?: number
+): boolean => {
+  // Mapeia o tipo de evento para a configuração correspondente
+  const soundSettingsMap = {
+    notification: "notificationSound",
+    alert: "alertSound",
+    podium: "podiumSound",
+    firstPlace: "firstPlaceSound"
+  };
+  
+  const soundSetting = soundSettingsMap[eventType];
+  const soundType = settings[soundSetting] || eventType;
+  
+  // Se o tipo de som for "none", não toca nada
+  if (soundType === "none") return true;
+  
+  // Usa o volume das configurações ou o volume fornecido
+  const soundVolume = volume !== undefined ? volume : (settings.soundVolume || 0.5);
+  
+  return playSound(soundType, soundVolume);
+};
+
 // Debug function to check all audio systems
 export const debugAudioSystems = () => {
   const state = getAudioState();

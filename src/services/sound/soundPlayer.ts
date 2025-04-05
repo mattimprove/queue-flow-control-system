@@ -1,6 +1,7 @@
 
 import { getAudio } from './soundResources';
 import { getAudioInstance, setAudioInstance, unlockAudio, canPlayAudio } from './soundCore';
+import { useSettings } from '@/contexts/SettingsContext';
 
 let notificationInterval: NodeJS.Timeout | null = null;
 
@@ -15,6 +16,12 @@ export const playSound = (soundType: string = "notification", volume: number = 0
     // Stop any existing sound
     if (getAudioInstance()) {
       stopSound();
+    }
+    
+    // Se soundType for "none", não tocar nenhum som
+    if (soundType === "none") {
+      console.log("Sound type is 'none', not playing any sound");
+      return true;
     }
     
     // Get the audio instance
