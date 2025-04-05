@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
@@ -27,6 +28,7 @@ const DashboardPage = () => {
   const [newTicketDialogOpen, setNewTicketDialogOpen] = useState(false);
   const [criticalTicket, setCriticalTicket] = useState<Ticket | null>(null);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
+  const [lastCheckTime, setLastCheckTime] = useState<number>(Date.now());
   
   const loadData = async () => {
     try {
@@ -37,6 +39,9 @@ const DashboardPage = () => {
       ]);
       setTickets(ticketsData);
       setStages(stagesData);
+      
+      // Force a check for critical tickets after data loading
+      setLastCheckTime(Date.now());
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
@@ -74,6 +79,7 @@ const DashboardPage = () => {
       setCriticalTicket(null);
     };
     
+    // Check for critical tickets whenever tickets, settings, dismissedAlerts, or lastCheckTime changes
     checkForCriticalTickets();
     
     const intervalId = setInterval(checkForCriticalTickets, 60000);
@@ -81,7 +87,7 @@ const DashboardPage = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [tickets, settings, dismissedAlerts]);
+  }, [tickets, settings, dismissedAlerts, lastCheckTime]);
   
   const pendingTicketsCount = tickets.filter(
     (ticket) => ticket.etapa_numero === 1
