@@ -49,6 +49,17 @@ const MainHeader = ({ title, pendingAlerts = 0 }: MainHeaderProps) => {
           )}
         </div>
       </div>
+      <div className="mt-3 text-xs text-center text-muted-foreground">
+        <div className="flex items-center justify-center gap-2">
+          <p>Produzido pela Sling Soluções de Mercado</p>
+          <a href="https://www.slingbr.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary">
+            <i className="fas fa-globe text-sm"></i>
+          </a>
+          <a href="https://www.instagram.com/slingbr_" target="_blank" rel="noopener noreferrer" className="hover:text-primary">
+            <i className="fab fa-instagram text-sm"></i>
+          </a>
+        </div>
+      </div>
     </header>
   );
 };
