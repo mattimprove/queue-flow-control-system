@@ -12,7 +12,8 @@ import {
   playSound, 
   unlockAudio, 
   debugAudioSystems,
-  preloadSounds
+  preloadSounds,
+  playSoundByEventType
 } from "@/services/notificationService";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -79,8 +80,8 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
     const handleTicketChange = () => {
       console.log('Alteração detectada nos tickets - atualizando lista...');
       onTicketChange();
-      // Play notification sound for new/updated tickets
-      playSound('notification', settings.soundVolume);
+      // Play notification sound for new/updated tickets using the new function
+      playSoundByEventType('notification', settings);
       toast.info('Atualização de tickets recebida!');
     };
     
@@ -93,7 +94,7 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
       console.log('Desativando inscrição em tempo real');
       supabase.removeChannel(channel);
     };
-  }, [onTicketChange, settings.soundVolume]);
+  }, [onTicketChange, settings]);
   
   // Check if we need to play alert sounds
   useEffect(() => {
@@ -105,8 +106,8 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
       // Unlock audio first
       unlockAudio();
       
-      // Start alert sound
-      const success = startAlertNotification(settings.soundType, settings.soundVolume);
+      // Start alert sound using the alert sound setting
+      const success = startAlertNotification(settings.alertSound, settings.soundVolume);
       
       if (success) {
         console.log("✅ Alert notification started successfully");
@@ -116,7 +117,7 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
         // Try again with user interaction
         const retryWithInteraction = () => {
           unlockAudio();
-          const retrySuccess = startAlertNotification(settings.soundType, settings.soundVolume);
+          const retrySuccess = startAlertNotification(settings.alertSound, settings.soundVolume);
           if (retrySuccess) {
             setAlertActive(true);
             document.removeEventListener("click", retryWithInteraction);

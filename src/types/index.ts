@@ -48,7 +48,13 @@ export interface AppSettings {
   criticalTimeMinutes: number;
   fullScreenAlertMinutes: number;
   soundVolume: number;
-  soundType: string;
+  // Remove the single soundType property
+  // soundType: string;
+  // Add individual sound properties for different events
+  notificationSound: string;
+  alertSound: string;
+  podiumSound: string;
+  firstPlaceSound: string;
 }
 
 export interface AuthContextType {

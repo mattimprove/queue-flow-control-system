@@ -25,7 +25,7 @@ const SoundTester = ({
   const { settings } = useSettings();
   const [selectedSound, setSelectedSound] = useState<string>("notificationSound");
 
-  const handleSoundPreview = (soundKey: string) => {
+  const handleSoundPreview = (soundKey: "notificationSound" | "alertSound" | "podiumSound" | "firstPlaceSound") => {
     // Parar qualquer som em reprodução
     stopSound();
     
@@ -35,7 +35,7 @@ const SoundTester = ({
     }
     
     // Obter o tipo de som atual com base na configuração
-    const soundToPlay = settings[soundKey as keyof typeof settings] as string || "notification";
+    const soundToPlay = settings[soundKey] || "notification";
     
     setIsPlayingSound(true);
     setSelectedSound(soundKey);
