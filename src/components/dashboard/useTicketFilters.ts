@@ -5,7 +5,6 @@ import { Ticket } from "@/types";
 export const useTicketFilters = (tickets: Ticket[]) => {
   const [selectedSector, setSelectedSector] = useState<string>("all");
   const [selectedAgent, setSelectedAgent] = useState<string>("all");
-  const [selectedStage, setSelectedStage] = useState<number | "all">("all");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   
   // Apply all filters to tickets
@@ -23,11 +22,6 @@ export const useTicketFilters = (tickets: Ticket[]) => {
       filtered = filtered.filter((ticket) => ticket.email_atendente === selectedAgent);
     }
     
-    // Filter by stage
-    if (selectedStage !== "all") {
-      filtered = filtered.filter((ticket) => ticket.etapa_numero === selectedStage);
-    }
-    
     // Sort tickets
     return filtered.sort((a, b) => {
       const dateA = new Date(a.data_criado);
@@ -36,12 +30,11 @@ export const useTicketFilters = (tickets: Ticket[]) => {
         ? dateB.getTime() - dateA.getTime() 
         : dateA.getTime() - dateB.getTime();
     });
-  }, [tickets, selectedSector, selectedAgent, selectedStage, sortOrder]);
+  }, [tickets, selectedSector, selectedAgent, sortOrder]);
   
   const clearFilters = () => {
     setSelectedSector("all");
     setSelectedAgent("all");
-    setSelectedStage("all");
     setSortOrder("desc");
   };
   
@@ -51,8 +44,6 @@ export const useTicketFilters = (tickets: Ticket[]) => {
     setSelectedSector,
     selectedAgent,
     setSelectedAgent,
-    selectedStage,
-    setSelectedStage,
     sortOrder,
     setSortOrder,
     clearFilters,

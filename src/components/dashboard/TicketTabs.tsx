@@ -28,13 +28,38 @@ const TicketTabs = ({
       : tickets.filter((ticket) => ticket.etapa_numero === status);
   };
 
+  // Find stage colors for each tab
+  const getStageColor = (stageNumber: number): string => {
+    const stage = stages.find(s => s.numero === stageNumber);
+    return stage?.cor || "#9b87f5"; // Default color if not found
+  };
+
+  // Get waiting stage color (stage 1)
+  const waitingColor = getStageColor(1);
+  // Get in progress stage color (stage 2)
+  const inProgressColor = getStageColor(2);
+  // Get finished stage color (stage 5)
+  const finishedColor = getStageColor(5);
+
   return (
     <Tabs defaultValue="all" className="w-full">
       <TabsList className="grid grid-cols-4 mb-6">
-        <TabsTrigger value="all">Todos</TabsTrigger>
-        <TabsTrigger value="waiting">Aguardando</TabsTrigger>
-        <TabsTrigger value="inProgress">Em Atendimento</TabsTrigger>
-        <TabsTrigger value="finished">Finalizados</TabsTrigger>
+        <TabsTrigger value="all" className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-slate-400" />
+          <span>Todos</span>
+        </TabsTrigger>
+        <TabsTrigger value="waiting" className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: waitingColor }} />
+          <span>Aguardando</span>
+        </TabsTrigger>
+        <TabsTrigger value="inProgress" className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: inProgressColor }} />
+          <span>Em Atendimento</span>
+        </TabsTrigger>
+        <TabsTrigger value="finished" className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: finishedColor }} />
+          <span>Finalizados</span>
+        </TabsTrigger>
       </TabsList>
       
       <TabsContent value="all">
