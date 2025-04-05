@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -20,6 +19,7 @@ import MainHeader from "@/components/MainHeader";
 import TicketList from "@/components/TicketList";
 import NewTicketForm from "@/components/NewTicketForm";
 import FullscreenAlert from "@/components/FullscreenAlert";
+import Footer from "@/components/Footer";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -39,7 +39,6 @@ const DashboardPage = () => {
   const [newTicketDialogOpen, setNewTicketDialogOpen] = useState(false);
   const [criticalTicket, setCriticalTicket] = useState<Ticket | null>(null);
   
-  // Load tickets and stages
   const loadData = async () => {
     try {
       setIsLoading(true);
@@ -56,19 +55,16 @@ const DashboardPage = () => {
     }
   };
   
-  // Initial data load
   useEffect(() => {
     loadData();
   }, []);
   
-  // Check for authentication
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
     }
   }, [isAuthenticated, navigate]);
   
-  // Check for critical tickets that need full-screen alert
   useEffect(() => {
     const checkForCriticalTickets = () => {
       const waitingTickets = tickets.filter((ticket) => ticket.etapa_numero === 1);
@@ -86,13 +82,11 @@ const DashboardPage = () => {
         }
       }
       
-      // No critical tickets found
       setCriticalTicket(null);
     };
     
     checkForCriticalTickets();
     
-    // Set up interval to check periodically
     const intervalId = setInterval(checkForCriticalTickets, 60000);
     
     return () => {
@@ -100,7 +94,6 @@ const DashboardPage = () => {
     };
   }, [tickets, settings]);
   
-  // Count tickets in waiting status for alerts
   const pendingTicketsCount = tickets.filter(
     (ticket) => ticket.etapa_numero === 1
   ).length;
@@ -176,7 +169,6 @@ const DashboardPage = () => {
         </Tabs>
       </main>
       
-      {/* New Ticket Dialog */}
       <Dialog open={newTicketDialogOpen} onOpenChange={setNewTicketDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -191,13 +183,14 @@ const DashboardPage = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Critical Ticket Alert */}
       {criticalTicket && (
         <FullscreenAlert 
           ticket={criticalTicket} 
           onClose={() => setCriticalTicket(null)} 
         />
       )}
+      
+      <Footer />
     </div>
   );
 };

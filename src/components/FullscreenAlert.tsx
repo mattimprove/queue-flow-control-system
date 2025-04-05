@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Ticket } from "@/types";
-import { getTimeStatus } from "@/utils/timeUtils";
+import { getTimeStatus, formatTimeSince } from "@/utils/timeUtils";
 import { useSettings } from "@/contexts/SettingsContext";
 import { stopAlertNotification, playSound, unlockAudio, debugAudioSystems } from "@/services/notificationService";
 import { X } from "lucide-react";
@@ -62,10 +62,10 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
     // Animação de entrada
     setTimeout(() => setIsVisible(true), 100);
     
-    // Update time display every minute
+    // Update time display every second
     const timer = setInterval(() => {
       forceUpdate(prev => prev + 1);
-    }, 60000);
+    }, 1000); // Update every second
     
     // Limpeza
     return () => {
@@ -82,6 +82,9 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
     settings.warningTimeMinutes, 
     settings.criticalTimeMinutes
   );
+  
+  // Obtenha a contagem de tempo formatada
+  const timeDisplay = formatTimeSince(ticket.data_criado);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -116,7 +119,7 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
           <p><strong>Motivo:</strong> {ticket.motivo}</p>
           <p><strong>Setor:</strong> {ticket.setor || "Não especificado"}</p>
           <p className="text-destructive font-bold">
-            Aguardando há {minutes} minutos
+            Aguardando há {timeDisplay}
           </p>
         </div>
         

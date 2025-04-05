@@ -7,17 +7,44 @@ export const getTimeDifferenceInMinutes = (dateString: string): number => {
   return Math.floor(diffMs / 60000);
 };
 
+export const getTimeDifferenceInSeconds = (dateString: string): number => {
+  const date = new Date(dateString);
+  const now = new Date();
+  
+  const diffMs = now.getTime() - date.getTime();
+  return Math.floor(diffMs / 1000);
+};
+
 export const formatTimeSince = (dateString: string): string => {
-  const minutes = getTimeDifferenceInMinutes(dateString);
+  const totalSeconds = getTimeDifferenceInSeconds(dateString);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
   
   if (minutes < 1) {
-    return "Agora mesmo";
+    if (seconds === 1) {
+      return "1 segundo atrás";
+    }
+    return `${seconds} segundos atrás`;
   }
+  
   if (minutes === 1) {
-    return "1 minuto atrás";
+    if (seconds === 0) {
+      return "1 minuto atrás";
+    }
+    if (seconds === 1) {
+      return "1 minuto e 1 segundo atrás";
+    }
+    return `1 minuto e ${seconds} segundos atrás`;
   }
+  
   if (minutes < 60) {
-    return `${minutes} minutos atrás`;
+    if (seconds === 0) {
+      return `${minutes} minutos atrás`;
+    }
+    if (seconds === 1) {
+      return `${minutes} minutos e 1 segundo atrás`;
+    }
+    return `${minutes} minutos e ${seconds} segundos atrás`;
   }
   
   const hours = Math.floor(minutes / 60);

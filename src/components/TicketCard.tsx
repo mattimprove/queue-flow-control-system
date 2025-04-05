@@ -29,11 +29,11 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, stages, onStatusChange 
     criticalTimeMinutes
   );
 
-  // Update time display every minute
+  // Update time display every second
   useEffect(() => {
     const timer = setInterval(() => {
       forceUpdate(prev => prev + 1);
-    }, 60000); // Update every minute
+    }, 1000); // Update every second
     
     return () => clearInterval(timer);
   }, []);
