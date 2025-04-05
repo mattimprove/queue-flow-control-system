@@ -1,7 +1,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Bell, Settings, LogOut } from "lucide-react";
+import { Bell, Settings, LogOut, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface MainHeaderProps {
@@ -25,6 +25,12 @@ const MainHeader = ({ title, pendingAlerts = 0 }: MainHeaderProps) => {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link to="/performance">
+            <Button variant="ghost" size="icon" title="Desempenho">
+              <Trophy className="h-5 w-5 text-amber-500" />
+            </Button>
+          </Link>
+
           {pendingAlerts > 0 && (
             <div className="relative">
               <Bell className="h-5 w-5 text-primary animate-pulse-attention" />
