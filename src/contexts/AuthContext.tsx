@@ -18,8 +18,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session?.user) {
-          // Verifica se o usuário está ativo
-          checkUserActive(session.user.id, session.user.email).then(isActive => {
+          // Verifica se o usuário está ativo usando a nova função
+          checkUserStatus(session.user.id, session.user.email).then(isActive => {
             if (isActive) {
               const userData: User = {
                 id: session.user.id,
@@ -55,8 +55,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       if (session?.user) {
-        // Verifica se o usuário está ativo
-        const isActive = await checkUserActive(session.user.id, session.user.email);
+        // Verifica se o usuário está ativo usando a nova função
+        const isActive = await checkUserStatus(session.user.id, session.user.email);
         
         if (isActive) {
           const userData: User = {
@@ -88,25 +88,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [navigate]);
 
-  // Função para verificar se o usuário está ativo na tabela login
-  const checkUserActive = async (userId: string, email: string | undefined): Promise<boolean> => {
+  // Função para verificar se o usuário está ativo usando a nova função SQL
+  const checkUserStatus = async (userId: string, email: string | undefined): Promise<boolean> => {
     try {
       if (!email) return false;
       
-      // Verifica na tabela login se o usuário está ativo
+      // Usa a nova função check_user_active para verificar se o usuário está ativo
       const { data, error } = await supabase
-        .from('login')
-        .select('ativo')
-        .eq('usuario', email)
-        .single();
+        .rpc('check_user_active', { email });
       
       if (error) {
         console.error("Erro ao verificar status do usuário:", error.message);
         return false;
       }
       
-      // Verifica se data.ativo existe e é true
-      return data?.ativo === true;
+      return data === true;
     } catch (error) {
       console.error("Erro ao verificar status do usuário:", error);
       return false;
@@ -116,6 +112,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
+      // Primeiro verifica se o usuário está ativo usando a função SQL
+      const { data: isActive, error: checkError } = await supabase
+        .rpc('check_user_active', { email });
+      
+      if (checkError) {
+        console.error("Erro ao verificar status do usuário:", checkError);
+        toast.error("Erro ao verificar status da conta");
+        return;
+      }
+      
+      if (!isActive) {
+        toast.error("Sua conta está aguardando aprovação do administrador");
+        return;
+      }
+      
+      // Se estiver ativo, tenta fazer login
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -127,15 +139,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (data.user) {
-        // Verifica se o usuário está ativo
-        const isActive = await checkUserActive(data.user.id, data.user.email);
-        
-        if (!isActive) {
-          await supabase.auth.signOut();
-          toast.error("Sua conta está aguardando aprovação do administrador");
-          return;
-        }
-        
         const userData: User = {
           id: data.user.id,
           usuario: data.user.email || data.user.user_metadata?.usuario || "usuário",

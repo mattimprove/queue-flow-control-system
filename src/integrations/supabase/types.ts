@@ -161,6 +161,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_active: {
+        Args: {
+          email: string
+        }
+        Returns: boolean
+      }
       insert_initial_etapas: {
         Args: Record<PropertyKey, never>
         Returns: undefined

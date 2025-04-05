@@ -90,28 +90,37 @@ const LoginPage = () => {
       } else {
         // Login
         try {
-          // Verifica primeiro se o usuário existe na tabela login
-          const { data: loginData, error: loginCheckError } = await supabase
-            .from('login')
-            .select('ativo')
-            .eq('usuario', values.email)
-            .single();
+          // Verifica primeiro se o usuário existe e está ativo usando a função RPC
+          const { data: isActive, error: checkError } = await supabase
+            .rpc('check_user_active', { email: values.email });
             
-          if (loginCheckError) {
-            console.error("Erro ao verificar usuário na tabela login:", loginCheckError);
-            if (loginCheckError.code === 'PGRST116') {
-              setErrorMessage("Este usuário não está registrado. Por favor, crie uma conta primeiro.");
-              return;
-            }
-          }
-          
-          if (loginData && loginData.ativo === false) {
-            setErrorMessage("Sua conta está aguardando aprovação do administrador.");
-            setShowApprovalInfo(true);
+          if (checkError) {
+            console.error("Erro ao verificar status do usuário:", checkError);
+            setErrorMessage("Erro ao verificar status da conta");
             return;
           }
           
-          // Tenta fazer o login com o Supabase Auth
+          // Se não tiver dados ou o usuário não estiver ativo
+          if (!isActive) {
+            // Verifica se o usuário existe na tabela login
+            const { data, error } = await supabase
+              .from('login')
+              .select('ativo')
+              .eq('usuario', values.email)
+              .single();
+            
+            if (error && error.code === 'PGRST116') {
+              // PGRST116 significa que não encontrou nenhum registro
+              setErrorMessage("Este usuário não está registrado. Por favor, crie uma conta primeiro.");
+            } else {
+              // Usuário existe mas não está ativo
+              setErrorMessage("Sua conta está aguardando aprovação do administrador.");
+              setShowApprovalInfo(true);
+            }
+            return;
+          }
+          
+          // Se chegou aqui, o usuário existe e está ativo, então tenta fazer login
           await login(values.email, values.password);
         } catch (error) {
           console.error("Erro durante o login:", error);
