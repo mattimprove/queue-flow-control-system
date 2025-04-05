@@ -33,6 +33,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [showApprovalInfo, setShowApprovalInfo] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Se o usuário já estiver autenticado, redirecione para o dashboard
@@ -51,6 +52,7 @@ const LoginPage = () => {
   const onSubmit = async (values: FormValues) => {
     try {
       setIsLoading(true);
+      setErrorMessage(null);
       
       if (isSigningUp) {
         // Criar conta
@@ -60,7 +62,8 @@ const LoginPage = () => {
         });
 
         if (error) {
-          toast.error(error.message || "Erro ao criar conta");
+          console.error("Erro ao criar conta:", error.message);
+          setErrorMessage(error.message || "Erro ao criar conta");
           return;
         }
 
@@ -74,8 +77,7 @@ const LoginPage = () => {
                 senha: 'hash-não-usado', // A senha real é gerenciada pelo Supabase Auth
                 ativo: false // Novo usuário começa como inativo
               }
-            ])
-            .select();
+            ]);
           
           if (loginError && !loginError.message.includes('duplicate')) {
             console.error("Erro ao adicionar usuário à tabela login:", loginError);
@@ -87,11 +89,38 @@ const LoginPage = () => {
         }
       } else {
         // Login
-        await login(values.email, values.password);
+        try {
+          // Verifica primeiro se o usuário existe na tabela login
+          const { data: loginData, error: loginCheckError } = await supabase
+            .from('login')
+            .select('ativo')
+            .eq('usuario', values.email)
+            .single();
+            
+          if (loginCheckError) {
+            console.error("Erro ao verificar usuário na tabela login:", loginCheckError);
+            if (loginCheckError.code === 'PGRST116') {
+              setErrorMessage("Este usuário não está registrado. Por favor, crie uma conta primeiro.");
+              return;
+            }
+          }
+          
+          if (loginData && loginData.ativo === false) {
+            setErrorMessage("Sua conta está aguardando aprovação do administrador.");
+            setShowApprovalInfo(true);
+            return;
+          }
+          
+          // Tenta fazer o login com o Supabase Auth
+          await login(values.email, values.password);
+        } catch (error) {
+          console.error("Erro durante o login:", error);
+          setErrorMessage("Credenciais inválidas. Verifique seu email e senha.");
+        }
       }
     } catch (error) {
       console.error("Erro:", error);
-      toast.error("Ocorreu um erro no processo de autenticação");
+      setErrorMessage("Ocorreu um erro no processo de autenticação");
     } finally {
       setIsLoading(false);
     }
@@ -120,6 +149,16 @@ const LoginPage = () => {
                 <AlertTitle className="text-green-700">Aguardando aprovação</AlertTitle>
                 <AlertDescription className="text-green-600">
                   Sua conta foi criada e está aguardando aprovação do administrador. Você receberá uma notificação quando sua conta for aprovada.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {errorMessage && (
+              <Alert className="mb-4 bg-red-50 border-red-200">
+                <InfoIcon className="h-4 w-4 text-red-500" />
+                <AlertTitle className="text-red-700">Erro</AlertTitle>
+                <AlertDescription className="text-red-600">
+                  {errorMessage}
                 </AlertDescription>
               </Alert>
             )}
@@ -166,6 +205,7 @@ const LoginPage = () => {
                 onClick={() => {
                   setIsSigningUp(!isSigningUp);
                   setShowApprovalInfo(false);
+                  setErrorMessage(null);
                 }} 
                 className="p-0"
               >
