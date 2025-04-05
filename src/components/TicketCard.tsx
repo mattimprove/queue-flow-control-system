@@ -22,9 +22,9 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, stages, onStatusChange 
   // Find current stage
   const currentStage = stages.find((stage) => stage.numero === ticket.etapa_numero);
   
-  // Calculate time status
+  // Calculate time status - always from creation time regardless of stage
   const timeInfo = getTimeStatus(
-    ticket.data_atualizado,
+    ticket.data_criado,
     warningTimeMinutes,
     criticalTimeMinutes
   );
@@ -71,6 +71,21 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, stages, onStatusChange 
   };
   
   const waitingTimeInfo = getWaitingTimeInfo();
+
+  // Determine the correct time display color based on the current stage
+  const getTimeDisplayColor = () => {
+    // For stage 1 (waiting), use the warning/critical colors
+    if (ticket.etapa_numero === 1) {
+      if (timeInfo.status === "critical") {
+        return "text-critical animate-pulse-attention";
+      } else if (timeInfo.status === "warning") {
+        return "text-warning";
+      }
+    }
+    
+    // For other stages, use the stage color with reduced opacity for better readability
+    return currentStage?.cor ? `text-[${currentStage.cor}]/80` : "text-muted-foreground";
+  };
 
   return (
     <div className="animate-slide-in">
@@ -145,15 +160,14 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, stages, onStatusChange 
             </Badge>
             
             <span
-              className={`text-sm ${
-                timeInfo.status === "critical"
-                  ? "text-critical animate-pulse-attention"
-                  : timeInfo.status === "warning"
-                  ? "text-warning"
-                  : "text-muted-foreground"
-              }`}
+              className={getTimeDisplayColor()}
+              style={
+                ticket.etapa_numero !== 1 && currentStage?.cor
+                  ? { color: currentStage.cor }
+                  : undefined
+              }
             >
-              {formatTimeSince(ticket.data_atualizado)}
+              {formatTimeSince(ticket.data_criado)}
             </span>
           </div>
         </CardContent>
