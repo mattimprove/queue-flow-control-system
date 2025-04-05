@@ -33,9 +33,12 @@ const TicketTabs = ({
 
   return (
     <Tabs defaultValue="all" className="w-full">
-      <TabsList className="flex mb-6 w-full justify-start overflow-x-auto">
+      <TabsList className="flex mb-6 w-full overflow-x-auto">
         {/* "All" tab is always present */}
-        <TabsTrigger value="all" className="flex items-center gap-2">
+        <TabsTrigger 
+          value="all" 
+          className="flex items-center gap-2 flex-1 justify-center min-w-[100px]"
+        >
           <div className="w-3 h-3 rounded-full bg-slate-400" />
           <span>Todos</span>
         </TabsTrigger>
@@ -45,7 +48,7 @@ const TicketTabs = ({
           <TabsTrigger 
             key={stage.id} 
             value={`stage-${stage.numero}`} 
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 flex-1 justify-center min-w-[100px]"
           >
             <div 
               className="w-3 h-3 rounded-full" 
