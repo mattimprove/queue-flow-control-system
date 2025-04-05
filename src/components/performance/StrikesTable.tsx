@@ -33,7 +33,7 @@ const StrikesTable = ({ strikes, isLoading }: StrikesTableProps) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-red-500" />
-            Tickets em Atraso (Strikes)
+            Atraso (Strikes)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -49,7 +49,7 @@ const StrikesTable = ({ strikes, isLoading }: StrikesTableProps) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-red-500" />
-            Tickets em Atraso (Strikes)
+            Atraso (Strikes)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -64,7 +64,7 @@ const StrikesTable = ({ strikes, isLoading }: StrikesTableProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-red-500" />
-          Tickets em Atraso (Strikes)
+          Atraso (Strikes)
         </CardTitle>
       </CardHeader>
       <CardContent>
