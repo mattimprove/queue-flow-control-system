@@ -66,4 +66,63 @@
   .time-warning {
     @apply text-warning;
   }
+
+  /* Estilos para notificações do pódio */
+  .podium-toast {
+    @apply font-bold text-base shadow-xl;
+    animation: scale-in 0.3s ease-out, spotlight 0.8s ease-out;
+    transform-origin: center bottom;
+    background: linear-gradient(45deg, #FFD700, #FFEC80, #FFD700);
+    border: 2px solid #E6C200;
+  }
+}
+
+@keyframes spotlight {
+  0% {
+    box-shadow: 0 0 0 0px rgba(255, 215, 0, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 15px rgba(255, 215, 0, 0);
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-attention {
+  "0%, 100%": { opacity: "1" },
+  "50%": { opacity: "0.5" },
+}
+
+@keyframes slide-in {
+  from: { transform: "translateY(-10px)", opacity: "0" },
+  to: { transform: "translateY(0)", opacity: "1" },
+}
+
+@keyframes fade-in {
+  from: { opacity: "0" },
+  to: { opacity: "1" },
+}
+
+@layer utilities {
+  .animate-pulse-attention {
+    animation: pulse-attention 1.5s infinite;
+  }
+  
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
 }

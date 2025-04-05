@@ -12,6 +12,7 @@ import SettingsPage from "./pages/SettingsPage";
 import PerformancePage from "./pages/PerformancePage";
 import NotFound from "./pages/NotFound";
 import { useState } from "react";
+import GlobalRankingMonitor from "./components/performance/GlobalRankingMonitor";
 
 function App() {
   // Move the QueryClient initialization inside the component function
@@ -25,7 +26,7 @@ function App() {
           <TooltipProvider>
             <SettingsProvider>
               <Toaster />
-              <Sonner />
+              <Sonner position="top-center" closeButton richColors />
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/login" element={<LoginPage />} />
@@ -34,6 +35,7 @@ function App() {
                 <Route path="/performance" element={<PerformancePage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <GlobalRankingMonitor />
             </SettingsProvider>
           </TooltipProvider>
         </AuthProvider>
