@@ -1,4 +1,3 @@
-
 // Sound options with URLs for audio files
 export const soundOptions = {
   notification: "/sounds/notification.mp3",
@@ -9,7 +8,7 @@ export const soundOptions = {
 };
 
 // Available sound files in the sounds directory
-// This includes both default sounds and custom sounds uploaded by users
+// This includes only the custom sounds uploaded by users
 export const availableSoundFiles: string[] = [
   // Additional sound files from the image
   "alertabeebep.mp3",
