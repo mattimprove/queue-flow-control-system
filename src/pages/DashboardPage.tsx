@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
@@ -49,9 +48,9 @@ const DashboardPage = () => {
       }
     };
     
-    // Verificar na inicialização e a cada 5 minutos
+    // Verificar na inicialização e a cada 1 minuto
     checkPerformance();
-    const performanceInterval = setInterval(checkPerformance, 5 * 60 * 1000);
+    const performanceInterval = setInterval(checkPerformance, 1 * 60 * 1000);
     
     return () => clearInterval(performanceInterval);
   }, [updateRanking, settings]);

@@ -5,8 +5,8 @@ import { useRankingStore } from "@/services/ranking";
 import { useSettings } from "@/contexts/SettingsContext";
 import PodiumConfetti from "./PodiumConfetti";
 
-// Intervalo de atualização do ranking em milissegundos (2 minutos)
-const RANKING_UPDATE_INTERVAL = 2 * 60 * 1000;
+// Intervalo de atualização do ranking em milissegundos (1 minuto)
+const RANKING_UPDATE_INTERVAL = 1 * 60 * 1000;
 
 const GlobalRankingMonitor = () => {
   const { settings } = useSettings();
