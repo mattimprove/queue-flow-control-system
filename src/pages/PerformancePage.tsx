@@ -7,8 +7,9 @@ import MainHeader from "@/components/MainHeader";
 import Footer from "@/components/Footer";
 import PerformanceRanking from "@/components/performance/PerformanceRanking";
 import StrikesTable from "@/components/performance/StrikesTable";
+import PodiumDisplay from "@/components/performance/PodiumDisplay";
 import { getAttendantPerformance, getAttendantStrikes, AttendantPerformance, StrikeData } from "@/services/performance";
-import { RefreshCw, Trophy, AlertTriangle } from "lucide-react";
+import { RefreshCw, Trophy, AlertTriangle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -59,6 +60,10 @@ const PerformancePage = () => {
   const handleRefresh = () => {
     loadData();
   };
+
+  const handleBack = () => {
+    navigate("/dashboard");
+  };
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -66,7 +71,17 @@ const PerformancePage = () => {
       
       <main className="flex-1 container py-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Dashboard de Desempenho</h2>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleBack} 
+              className="mr-2"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h2 className="text-xl font-semibold">Dashboard de Desempenho</h2>
+          </div>
           
           <Button variant="outline" onClick={handleRefresh} className="gap-2">
             <RefreshCw className="h-4 w-4" />
@@ -77,6 +92,10 @@ const PerformancePage = () => {
         {viewMode === "desktop" ? (
           // Desktop view
           <div className="space-y-8">
+            <PodiumDisplay 
+              attendants={performanceData.slice(0, 3)} 
+              isLoading={isLoading}
+            />
             <PerformanceRanking 
               attendants={performanceData} 
               isLoading={isLoading} 
@@ -101,6 +120,10 @@ const PerformancePage = () => {
             </TabsList>
             
             <TabsContent value="ranking">
+              <PodiumDisplay 
+                attendants={performanceData.slice(0, 3)} 
+                isLoading={isLoading}
+              />
               <PerformanceRanking 
                 attendants={performanceData} 
                 isLoading={isLoading} 
