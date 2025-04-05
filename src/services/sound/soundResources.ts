@@ -9,14 +9,23 @@ export const soundOptions = {
 };
 
 // Available sound files in the sounds directory
-// This should be updated with actual files from the server
+// This includes both default sounds and custom sounds uploaded by users
 export const availableSoundFiles: string[] = [
+  // Standard sound files
   "notification.mp3",
   "alert.mp3",
   "beep.mp3", 
   "podium.mp3",
   "firstPlace.mp3",
-  "alerta.mp3", // Adding available file from read-only-files
+  "alerta.mp3",
+  
+  // Additional sound files from the image
+  "alertabeebep.mp3",
+  "cashregister.mp3",
+  "notificacao.mp3",
+  "senna.mp3",
+  "sirneindustrial.mp3",
+  "ultrapassagem.mp3"
 ];
 
 // Function to get nice display name from a filename
@@ -32,6 +41,12 @@ export const getSoundDisplayName = (filename: string): string => {
     case 'podium': return 'Som de Pódio';
     case 'firstPlace': return 'Som de Primeiro Lugar';
     case 'alerta': return 'Som de Alerta (Alt)';
+    case 'alertabeebep': return 'Alerta Beep';
+    case 'cashregister': return 'Caixa Registradora';
+    case 'notificacao': return 'Notificação';
+    case 'senna': return 'Senna';
+    case 'sirneindustrial': return 'Sirene Industrial';
+    case 'ultrapassagem': return 'Ultrapassagem';
     default:
       // For custom files, capitalize first letter and add spaces before uppercase letters
       return nameWithoutExtension
