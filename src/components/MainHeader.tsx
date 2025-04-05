@@ -15,11 +15,11 @@ const MainHeader = ({ title, pendingAlerts = 0 }: MainHeaderProps) => {
   return (
     <header className="bg-card p-4 border-b border-border sticky top-0 z-10">
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-6">
           <img 
             src="/lovable-uploads/4c7404d8-ef38-4ae1-b736-66ac06729fc0.png" 
             alt="Sling Logo" 
-            className="h-12 w-auto transition-all hover:scale-105" 
+            className="h-14 w-auto transition-all hover:scale-110 hover:drop-shadow-md" 
           />
           <h1 className="text-2xl font-bold text-primary">{title}</h1>
         </div>
@@ -37,12 +37,12 @@ const MainHeader = ({ title, pendingAlerts = 0 }: MainHeaderProps) => {
           {isAuthenticated && (
             <>
               <Link to="/settings">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" title="Configurações">
                   <Settings className="h-5 w-5" />
                 </Button>
               </Link>
               
-              <Button variant="ghost" size="icon" onClick={logout}>
+              <Button variant="ghost" size="icon" onClick={logout} title="Sair">
                 <LogOut className="h-5 w-5" />
               </Button>
             </>

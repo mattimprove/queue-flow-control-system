@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -17,6 +17,7 @@ interface TicketCardProps {
 const TicketCard: React.FC<TicketCardProps> = ({ ticket, stages, onStatusChange }) => {
   const { settings } = useSettings();
   const { showUserNS, phoneDisplayMode, warningTimeMinutes, criticalTimeMinutes } = settings;
+  const [, forceUpdate] = useState<number>(0);
   
   // Find current stage
   const currentStage = stages.find((stage) => stage.numero === ticket.etapa_numero);
@@ -27,6 +28,15 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, stages, onStatusChange 
     warningTimeMinutes,
     criticalTimeMinutes
   );
+
+  // Update time display every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      forceUpdate(prev => prev + 1);
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(timer);
+  }, []);
   
   // Get initials for avatar fallback
   const getInitials = (name: string) => {

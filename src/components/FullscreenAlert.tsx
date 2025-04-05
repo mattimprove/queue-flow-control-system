@@ -17,6 +17,7 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
   const { settings } = useSettings();
   const [isVisible, setIsVisible] = useState(false);
   const [soundPlayed, setSoundPlayed] = useState(false);
+  const [, forceUpdate] = useState<number>(0);
 
   useEffect(() => {
     // Log audio system state for debugging
@@ -61,11 +62,17 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
     // Animação de entrada
     setTimeout(() => setIsVisible(true), 100);
     
+    // Update time display every minute
+    const timer = setInterval(() => {
+      forceUpdate(prev => prev + 1);
+    }, 60000);
+    
     // Limpeza
     return () => {
       stopAlertNotification();
       document.removeEventListener('click', handleUserInteraction);
       document.removeEventListener('touchstart', handleUserInteraction);
+      clearInterval(timer);
     };
   }, [settings.soundVolume, soundPlayed]);
 

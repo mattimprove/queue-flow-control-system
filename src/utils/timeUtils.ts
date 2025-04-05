@@ -11,28 +11,28 @@ export const formatTimeSince = (dateString: string): string => {
   const minutes = getTimeDifferenceInMinutes(dateString);
   
   if (minutes < 1) {
-    return "Just now";
+    return "Agora mesmo";
   }
   if (minutes === 1) {
-    return "1 minute ago";
+    return "1 minuto atrás";
   }
   if (minutes < 60) {
-    return `${minutes} minutes ago`;
+    return `${minutes} minutos atrás`;
   }
   
   const hours = Math.floor(minutes / 60);
   if (hours === 1) {
-    return "1 hour ago";
+    return "1 hora atrás";
   }
   if (hours < 24) {
-    return `${hours} hours ago`;
+    return `${hours} horas atrás`;
   }
   
   const days = Math.floor(hours / 24);
   if (days === 1) {
-    return "1 day ago";
+    return "1 dia atrás";
   }
-  return `${days} days ago`;
+  return `${days} dias atrás`;
 };
 
 export const formatPhoneNumber = (phone: string | undefined, mode: 'full' | 'partial' | 'hidden'): string => {

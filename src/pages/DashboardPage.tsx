@@ -50,7 +50,7 @@ const DashboardPage = () => {
       setTickets(ticketsData);
       setStages(stagesData);
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error("Erro ao carregar dados:", error);
     } finally {
       setIsLoading(false);
     }
