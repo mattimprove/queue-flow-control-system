@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -38,6 +39,7 @@ const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [newTicketDialogOpen, setNewTicketDialogOpen] = useState(false);
   const [criticalTicket, setCriticalTicket] = useState<Ticket | null>(null);
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
   
   const loadData = async () => {
     try {
@@ -76,7 +78,8 @@ const DashboardPage = () => {
           settings.criticalTimeMinutes
         );
         
-        if (timeInfo.minutes >= settings.fullScreenAlertMinutes) {
+        // Verificamos se o ticket está em estado crítico e se não foi dispensado anteriormente
+        if (timeInfo.minutes >= settings.fullScreenAlertMinutes && !dismissedAlerts.has(ticket.id)) {
           setCriticalTicket(ticket);
           return;
         }
@@ -92,11 +95,21 @@ const DashboardPage = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [tickets, settings]);
+  }, [tickets, settings, dismissedAlerts]);
   
   const pendingTicketsCount = tickets.filter(
     (ticket) => ticket.etapa_numero === 1
   ).length;
+
+  const handleCloseAlert = (ticketId: string) => {
+    // Adiciona o ticket à lista de alertas dispensados
+    setDismissedAlerts(prev => {
+      const newSet = new Set(prev);
+      newSet.add(ticketId);
+      return newSet;
+    });
+    setCriticalTicket(null);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -186,7 +199,7 @@ const DashboardPage = () => {
       {criticalTicket && (
         <FullscreenAlert 
           ticket={criticalTicket} 
-          onClose={() => setCriticalTicket(null)} 
+          onClose={() => handleCloseAlert(criticalTicket.id)} 
         />
       )}
       

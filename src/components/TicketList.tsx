@@ -14,7 +14,6 @@ import {
   debugAudioSystems,
   preloadSounds
 } from "@/services/notificationService";
-import FullscreenAlert from "./FullscreenAlert";
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -25,7 +24,6 @@ interface TicketListProps {
 const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
   const { settings } = useSettings();
   const [alertActive, setAlertActive] = useState(false);
-  const [criticalTicket, setCriticalTicket] = useState<Ticket | null>(null);
   
   // Initialize audio context on first render and preload sounds
   useEffect(() => {
@@ -109,43 +107,11 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
       setAlertActive(false);
     }
     
-    // Check for tickets that need full-screen alert
-    let mostCriticalTicket: Ticket | null = null;
-    let maxWaitTime = -1;
-    
-    pendingTickets.forEach(ticket => {
-      const timeInfo = getTimeStatus(
-        ticket.data_criado,
-        settings.warningTimeMinutes,
-        settings.criticalTimeMinutes
-      );
-      
-      // Find the ticket with the longest wait time that exceeds the fullscreen threshold
-      if (timeInfo.minutes >= settings.fullScreenAlertMinutes && timeInfo.minutes > maxWaitTime) {
-        maxWaitTime = timeInfo.minutes;
-        mostCriticalTicket = ticket;
-      }
-    });
-    
-    // Update critical ticket for fullscreen alert
-    if (mostCriticalTicket && !criticalTicket) {
-      setCriticalTicket(mostCriticalTicket);
-      // Try to play a sound with unlock attempt first
-      unlockAudio();
-      const success = playSound("alert", settings.soundVolume, false);
-      if (!success) {
-        console.warn("⚠️ Could not play critical alert sound - may need user interaction");
-        toast.warning("Clique na tela para ativar os alertas sonoros", { duration: 5000 });
-      }
-    } else if (!mostCriticalTicket && criticalTicket) {
-      setCriticalTicket(null);
-    }
-    
     // Cleanup
     return () => {
       stopAlertNotification();
     };
-  }, [tickets, alertActive, settings, criticalTicket]);
+  }, [tickets, alertActive, settings]);
 
   // Update ticket status
   const handleStatusChange = async (ticketId: string, newStageNumber: number) => {
@@ -173,32 +139,22 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
   };
 
   return (
-    <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {tickets.map((ticket) => (
-          <TicketCard
-            key={ticket.id}
-            ticket={ticket}
-            stages={stages}
-            onStatusChange={handleStatusChange}
-          />
-        ))}
-        
-        {tickets.length === 0 && (
-          <div className="col-span-full text-center p-12">
-            <p className="text-muted-foreground">Nenhum chamado encontrado</p>
-          </div>
-        )}
-      </div>
-      
-      {/* Fullscreen critical alert */}
-      {criticalTicket && (
-        <FullscreenAlert
-          ticket={criticalTicket}
-          onClose={() => setCriticalTicket(null)}
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {tickets.map((ticket) => (
+        <TicketCard
+          key={ticket.id}
+          ticket={ticket}
+          stages={stages}
+          onStatusChange={handleStatusChange}
         />
+      ))}
+      
+      {tickets.length === 0 && (
+        <div className="col-span-full text-center p-12">
+          <p className="text-muted-foreground">Nenhum chamado encontrado</p>
+        </div>
       )}
-    </>
+    </div>
   );
 };
 
