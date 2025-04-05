@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { updateStage } from "@/services/dataService";
+import { updateStage } from "@/services";
 import { toast } from "sonner";
 import { Edit, Check, X, ArrowUp, ArrowDown } from "lucide-react";
 

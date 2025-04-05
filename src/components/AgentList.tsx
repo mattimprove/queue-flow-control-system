@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
-import { updateAgent } from "@/services/dataService";
+import { updateAgent } from "@/services";
 import { toast } from "sonner";
 import { Edit, Trash } from "lucide-react";
 

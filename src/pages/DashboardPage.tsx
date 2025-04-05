@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -23,7 +24,7 @@ import Footer from "@/components/Footer";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
-import { getTickets, getStages } from "@/services/dataService";
+import { getTickets, getStages } from "@/services";
 import { getTimeStatus } from "@/utils/timeUtils";
 import { Stage, Ticket } from "@/types";
 import { Plus } from "lucide-react";

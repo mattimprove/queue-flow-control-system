@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { Ticket, Stage } from "@/types";
 import TicketCard from "./TicketCard";
-import { updateTicket, subscribeToTickets } from "@/services/dataService";
+import { updateTicket, subscribeToTickets } from "@/services";
 import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { getTimeStatus } from "@/utils/timeUtils";

@@ -22,7 +22,7 @@ import StageList from "@/components/StageList";
 import AppSettingsForm from "@/components/AppSettingsForm";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { getAgents, getStages } from "@/services/dataService";
+import { getAgents, getStages } from "@/services";
 import { Agent, Stage } from "@/types";
 import { UserPlus, ArrowLeft } from "lucide-react";
 

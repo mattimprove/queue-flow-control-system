@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { createTicket } from "@/services/dataService";
+import { createTicket } from "@/services";
 import { toast } from "sonner";
 import { Ticket } from "@/types";
 

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { createAgent, updateAgent } from "@/services/dataService";
+import { createAgent, updateAgent } from "@/services";
 import { toast } from "sonner";
 import { Agent } from "@/types";
 
