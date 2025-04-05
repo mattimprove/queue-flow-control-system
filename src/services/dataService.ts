@@ -1,3 +1,4 @@
+
 import { Agent, Stage, Ticket } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
