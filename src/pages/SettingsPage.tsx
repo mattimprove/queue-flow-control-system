@@ -90,8 +90,9 @@ const SettingsPage = () => {
         </div>
         
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid grid-cols-3 mb-6">
+          <TabsList className="grid grid-cols-4 mb-6">
             <TabsTrigger value="general">Geral</TabsTrigger>
+            <TabsTrigger value="audio">Áudio</TabsTrigger>
             <TabsTrigger value="stages">Etapas</TabsTrigger>
             <TabsTrigger value="agents">Atendentes</TabsTrigger>
           </TabsList>
@@ -100,6 +101,13 @@ const SettingsPage = () => {
             <div className="max-w-2xl mx-auto">
               <h3 className="text-lg font-medium mb-4">Configurações Gerais</h3>
               <AppSettingsForm />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="audio">
+            <div className="max-w-2xl mx-auto">
+              <h3 className="text-lg font-medium mb-4">Configurações de Áudio</h3>
+              <AppSettingsForm initialTab="audio" />
             </div>
           </TabsContent>
           
