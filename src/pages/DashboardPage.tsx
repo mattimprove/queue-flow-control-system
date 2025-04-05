@@ -109,6 +109,11 @@ const DashboardPage = () => {
     setCriticalTicket(null);
   };
 
+  const handleTicketCreated = () => {
+    setNewTicketDialogOpen(false);
+    loadData();
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <MainHeader title="Sistema de Fila de Atendimento" pendingAlerts={pendingTicketsCount} />
@@ -186,9 +191,7 @@ const DashboardPage = () => {
             <DialogTitle>Novo Chamado</DialogTitle>
           </DialogHeader>
           <NewTicketForm
-            onTicketCreated={() => {
-              setNewTicketDialogOpen(false);
-            }}
+            onTicketCreated={handleTicketCreated}
           />
         </DialogContent>
       </Dialog>

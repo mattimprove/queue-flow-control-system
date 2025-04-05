@@ -73,12 +73,15 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
 
   // Set up realtime subscription for tickets table
   useEffect(() => {
+    console.log('Configurando inscrição em tempo real para os tickets...');
+    
     // Use the subscribeToTickets function from dataService
     const handleTicketChange = () => {
+      console.log('Alteração detectada nos tickets - atualizando lista...');
       onTicketChange();
-      // Play notification sound for new tickets
+      // Play notification sound for new/updated tickets
       playSound('notification', settings.soundVolume);
-      toast.info('Novo chamado recebido!');
+      toast.info('Atualização de tickets recebida!');
     };
     
     const channel = subscribeToTickets(handleTicketChange);
