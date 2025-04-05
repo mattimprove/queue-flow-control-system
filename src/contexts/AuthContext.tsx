@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { AuthContextType, User } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
+// Criando o contexto com um valor inicial undefined
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -13,32 +14,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Verifica se existe uma sessão do Supabase e configura o usuário
-    const checkSession = async () => {
-      setIsLoading(true);
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error("Erro ao verificar sessão:", error.message);
-      }
-      
-      if (session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          usuario: session.user.email || session.user.user_metadata?.usuario || "usuário",
-        };
-        setUser(userData);
-      } else {
-        setUser(null);
-      }
-      
-      setIsLoading(false);
-    };
-
-    // Verifica a sessão ao carregar
-    checkSession();
-
-    // Configura listener para mudanças de autenticação
+    // Set up auth listener first (importante para evitar race conditions)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session?.user) {
@@ -55,6 +31,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsLoading(false);
       }
     );
+
+    // Verifica se existe uma sessão do Supabase e configura o usuário
+    const checkSession = async () => {
+      setIsLoading(true);
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error("Erro ao verificar sessão:", error.message);
+      }
+      
+      if (session?.user) {
+        const userData: User = {
+          id: session.user.id,
+          usuario: session.user.email || session.user.user_metadata?.usuario || "usuário",
+        };
+        setUser(userData);
+        localStorage.setItem("queueUser", JSON.stringify(userData));
+      } else {
+        setUser(null);
+        localStorage.removeItem("queueUser");
+      }
+      
+      setIsLoading(false);
+    };
+
+    // Verifica a sessão ao carregar
+    checkSession();
 
     return () => {
       subscription.unsubscribe();
@@ -105,22 +108,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Valor do contexto que será disponibilizado
+  const contextValue: AuthContextType = {
+    user,
+    login,
+    logout,
+    isLoading,
+    isAuthenticated: !!user,
+  };
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        login,
-        logout,
-        isLoading,
-        isAuthenticated: !!user,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
+// Hook personalizado para acessar o contexto
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error("useAuth deve ser usado dentro de um AuthProvider");
