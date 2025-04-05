@@ -11,7 +11,7 @@ import { toast } from "sonner";
 interface FullscreenAlertProps {
   ticket: Ticket;
   onClose: () => void;
-  onDismissAll: () => void; // New prop for dismissing all alerts
+  onDismissAll: () => void;
 }
 
 const FullscreenAlert = ({ ticket, onClose, onDismissAll }: FullscreenAlertProps) => {
@@ -97,7 +97,6 @@ const FullscreenAlert = ({ ticket, onClose, onDismissAll }: FullscreenAlertProps
     setIsVisible(false);
     setTimeout(onDismissAll, 300); // Espera a animação terminar
     stopAlertNotification();
-    toast.success("Todos os alertas atuais foram dispensados");
   };
 
   return (

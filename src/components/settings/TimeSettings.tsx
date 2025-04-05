@@ -4,6 +4,8 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { AppSettings } from "@/types";
+import { HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TimeSettingsProps {
   form: UseFormReturn<AppSettings>;
@@ -19,7 +21,19 @@ const TimeSettings = ({ form }: TimeSettingsProps) => {
         name="warningTimeMinutes"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Tempo para Alerta Amarelo (min)</FormLabel>
+            <div className="flex items-center gap-2">
+              <FormLabel>Tempo para Alerta Amarelo (min)</FormLabel>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle size={16} className="text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Ticket ficará com destaque amarelo após este tempo de espera</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <FormControl>
               <Input
                 type="number"
@@ -37,7 +51,19 @@ const TimeSettings = ({ form }: TimeSettingsProps) => {
         name="criticalTimeMinutes"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Tempo para Alerta Vermelho (min)</FormLabel>
+            <div className="flex items-center gap-2">
+              <FormLabel>Tempo para Alerta Vermelho (min)</FormLabel>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle size={16} className="text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Ticket ficará com destaque vermelho após este tempo de espera</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <FormControl>
               <Input
                 type="number"
@@ -55,7 +81,19 @@ const TimeSettings = ({ form }: TimeSettingsProps) => {
         name="fullScreenAlertMinutes"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Tempo para Alerta em Tela Cheia (min)</FormLabel>
+            <div className="flex items-center gap-2">
+              <FormLabel>Tempo para Alerta em Tela Cheia (min)</FormLabel>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle size={16} className="text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Um alerta em tela cheia será exibido imediatamente após este tempo de espera</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <FormControl>
               <Input
                 type="number"
