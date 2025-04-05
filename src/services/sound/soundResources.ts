@@ -1,11 +1,11 @@
 
 // Sound options with URLs for audio files
 export const soundOptions = {
-  notification: "/sounds/notification.mp3",
-  alert: "/sounds/alert.mp3",
-  beep: "/sounds/beep.mp3",
-  podium: "/sounds/podium.mp3",
-  firstPlace: "/sounds/firstPlace.mp3",
+  notification: "/sounds/notification.mp3", // For new ticket
+  alert: "/sounds/alert.mp3",               // For delay alert when popup opens
+  beep: "/sounds/beep.mp3",                 // General beep sound (kept for backward compatibility)
+  podium: "/sounds/podium.mp3",             // For when someone enters the podium
+  firstPlace: "/sounds/firstPlace.mp3",     // For when someone takes first place
 };
 
 // Map to store preloaded audio objects

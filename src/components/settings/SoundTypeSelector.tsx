@@ -27,11 +27,11 @@ const SoundTypeSelector = ({ form }: SoundTypeSelectorProps) => {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="notification">Notificação</SelectItem>
-              <SelectItem value="alert">Alerta</SelectItem>
-              <SelectItem value="beep">Beep</SelectItem>
-              <SelectItem value="podium">Som de Pódio</SelectItem>
-              <SelectItem value="firstPlace">Som de 1º Lugar</SelectItem>
+              <SelectItem value="notification">Som de Novo Atendimento</SelectItem>
+              <SelectItem value="alert">Som de Alerta de Atraso</SelectItem>
+              <SelectItem value="beep">Som de Beep (Geral)</SelectItem>
+              <SelectItem value="podium">Som de Entrada no Pódio</SelectItem>
+              <SelectItem value="firstPlace">Som de Primeiro Lugar</SelectItem>
             </SelectContent>
           </Select>
           <FormMessage />
