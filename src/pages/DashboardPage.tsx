@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
@@ -28,7 +27,6 @@ const DashboardPage = () => {
   const [newTicketDialogOpen, setNewTicketDialogOpen] = useState(false);
   const [criticalTicket, setCriticalTicket] = useState<Ticket | null>(null);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
-  const [suppressAllAlerts, setSuppressAllAlerts] = useState(false); // New state to suppress all alerts
   
   const loadData = async () => {
     try {
@@ -58,11 +56,6 @@ const DashboardPage = () => {
   
   useEffect(() => {
     const checkForCriticalTickets = () => {
-      // Skip if all alerts are being suppressed
-      if (suppressAllAlerts) {
-        return;
-      }
-      
       const waitingTickets = tickets.filter((ticket) => ticket.etapa_numero === 1);
       
       for (const ticket of waitingTickets) {
@@ -88,7 +81,7 @@ const DashboardPage = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [tickets, settings, dismissedAlerts, suppressAllAlerts]);
+  }, [tickets, settings, dismissedAlerts]);
   
   const pendingTicketsCount = tickets.filter(
     (ticket) => ticket.etapa_numero === 1
@@ -104,16 +97,14 @@ const DashboardPage = () => {
   };
   
   const handleDismissAllAlerts = () => {
-    // Mark all pending tickets as dismissed
     const newDismissed = new Set(dismissedAlerts);
     tickets
       .filter(ticket => ticket.etapa_numero === 1)
       .forEach(ticket => newDismissed.add(ticket.id));
     
     setDismissedAlerts(newDismissed);
-    setSuppressAllAlerts(true); // Suppress all future alerts for this session
     setCriticalTicket(null);
-    toast.success("Todos os alertas foram dispensados para esta sessão");
+    toast.success("Todos os alertas atuais foram dispensados");
   };
 
   const handleTicketCreated = () => {

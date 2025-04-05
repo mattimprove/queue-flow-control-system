@@ -97,7 +97,7 @@ const FullscreenAlert = ({ ticket, onClose, onDismissAll }: FullscreenAlertProps
     setIsVisible(false);
     setTimeout(onDismissAll, 300); // Espera a animação terminar
     stopAlertNotification();
-    toast.success("Todos os alertas foram dispensados");
+    toast.success("Todos os alertas atuais foram dispensados");
   };
 
   return (
@@ -133,7 +133,7 @@ const FullscreenAlert = ({ ticket, onClose, onDismissAll }: FullscreenAlertProps
         
         <div className="flex justify-between gap-2">
           <Button variant="outline" onClick={handleDismissAll}>
-            Dispensar Todos os Alertas
+            Dispensar Alertas Atuais
           </Button>
           <Button variant="destructive" onClick={handleClose}>
             Fechar Alerta
