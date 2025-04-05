@@ -1,7 +1,6 @@
 
 import { getAudio } from './soundResources';
 import { getAudioInstance, setAudioInstance, unlockAudio, canPlayAudio } from './soundCore';
-import { useSettings } from '@/contexts/SettingsContext';
 
 let notificationInterval: NodeJS.Timeout | null = null;
 

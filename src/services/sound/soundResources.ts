@@ -1,12 +1,22 @@
 
 // Sound options with URLs for audio files
 export const soundOptions = {
-  notification: "/sounds/notification.mp3", // For new ticket
-  alert: "/sounds/alert.mp3",               // For delay alert when popup opens
-  beep: "/sounds/beep.mp3",                 // General beep sound (kept for backward compatibility)
-  podium: "/sounds/podium.mp3",             // For when someone enters the podium
-  firstPlace: "/sounds/firstPlace.mp3",     // For when someone takes first place
+  notification: "/sounds/notification.mp3",
+  alert: "/sounds/alert.mp3",
+  beep: "/sounds/beep.mp3",
+  podium: "/sounds/podium.mp3",
+  firstPlace: "/sounds/firstPlace.mp3",
 };
+
+// Available sound files in the sounds directory
+export const availableSoundFiles: string[] = [
+  "notification.mp3",
+  "alert.mp3",
+  "beep.mp3", 
+  "podium.mp3",
+  "firstPlace.mp3",
+  // Add other sound files that exist in the public/sounds directory
+];
 
 // Map to store preloaded audio objects
 const audioCache: Record<string, HTMLAudioElement> = {};
@@ -39,7 +49,19 @@ export const preloadSounds = () => {
 
 // Get cached audio object if available, or create a new one
 export const getAudio = (soundType: string): HTMLAudioElement => {
-  const soundUrl = soundOptions[soundType as keyof typeof soundOptions] || soundOptions.notification;
+  // Check if it's a standard sound or a custom file
+  let soundUrl: string;
+  
+  if (soundType in soundOptions) {
+    // Standard sound type
+    soundUrl = soundOptions[soundType as keyof typeof soundOptions];
+  } else if (soundType.endsWith('.mp3')) {
+    // Custom sound file
+    soundUrl = `/sounds/${soundType}`;
+  } else {
+    // Fallback to notification
+    soundUrl = soundOptions.notification;
+  }
   
   // If we have a cached version, clone it for safe usage
   if (audioCache[soundType]) {
@@ -58,3 +80,4 @@ export const getAudio = (soundType: string): HTMLAudioElement => {
 
 // Don't try to preload sounds on initial module import
 // We'll call this explicitly after user interaction
+

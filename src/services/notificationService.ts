@@ -68,6 +68,8 @@ const ensureAudioFilesExist = () => {
     "- /public/sounds/notification.mp3\n" + 
     "- /public/sounds/alert.mp3\n" + 
     "- /public/sounds/beep.mp3\n" +
+    "- /public/sounds/podium.mp3\n" +
+    "- /public/sounds/firstPlace.mp3\n" +
     "These should be real MP3 files, not placeholder text files."
   );
 };

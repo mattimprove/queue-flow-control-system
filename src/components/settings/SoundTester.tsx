@@ -35,7 +35,7 @@ const SoundTester = ({
     }
     
     // Obter o tipo de som atual com base na configuração
-    const soundToPlay = settings[soundKey] || "notification";
+    const soundToPlay = settings[soundKey];
     
     setIsPlayingSound(true);
     setSelectedSound(soundKey);
@@ -63,7 +63,7 @@ const SoundTester = ({
         const handleInteraction = () => {
           unlockAudio();
           preloadSounds();
-          playSound(soundType, volume);
+          playSound(soundToPlay, volume);
           setAudioPermissionGranted(true);
           document.removeEventListener('click', handleInteraction);
         };

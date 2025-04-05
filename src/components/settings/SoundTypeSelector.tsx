@@ -4,6 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 import { AppSettings } from "@/types";
+import { availableSoundFiles } from "@/services/sound/soundResources";
 
 interface SoundTypeSelectorProps {
   form: UseFormReturn<AppSettings>;
@@ -12,6 +13,26 @@ interface SoundTypeSelectorProps {
 }
 
 const SoundTypeSelector = ({ form, soundType, label }: SoundTypeSelectorProps) => {
+  // Get a descriptive name for each sound file
+  const getSoundDisplayName = (filename: string): string => {
+    // Remove file extension
+    const nameWithoutExtension = filename.replace('.mp3', '');
+    
+    // Make it more readable (capitalize first letter, handle special cases)
+    switch(nameWithoutExtension) {
+      case 'notification': return 'Som de Notificação';
+      case 'alert': return 'Som de Alerta';
+      case 'beep': return 'Som de Beep';
+      case 'podium': return 'Som de Pódio';
+      case 'firstPlace': return 'Som de Primeiro Lugar';
+      default:
+        // For custom files, capitalize first letter and add spaces before uppercase letters
+        return nameWithoutExtension
+          .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+          .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
+    }
+  };
+
   return (
     <FormField
       control={form.control}
@@ -28,13 +49,16 @@ const SoundTypeSelector = ({ form, soundType, label }: SoundTypeSelectorProps) =
                 <SelectValue placeholder="Selecione um som" />
               </SelectTrigger>
             </FormControl>
-            <SelectContent>
-              <SelectItem value="notification">Som de Notificação</SelectItem>
-              <SelectItem value="alert">Som de Alerta</SelectItem>
-              <SelectItem value="beep">Som de Beep</SelectItem>
-              <SelectItem value="podium">Som de Pódio</SelectItem>
-              <SelectItem value="firstPlace">Som de Primeiro Lugar</SelectItem>
+            <SelectContent className="max-h-[200px]">
+              {/* Specific named options */}
               <SelectItem value="none">Sem Som</SelectItem>
+              
+              {/* Standard sound options */}
+              {availableSoundFiles.map((filename) => (
+                <SelectItem key={filename} value={filename}>
+                  {getSoundDisplayName(filename)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <FormMessage />
