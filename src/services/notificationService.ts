@@ -1,13 +1,29 @@
 
-let audio: HTMLAudioElement | null = null;
-let notificationInterval: NodeJS.Timeout | null = null;
-
-// Sound options
+// Sound options with preloaded audio files
 const soundOptions = {
   notification: "/sounds/notification.mp3",
   alert: "/sounds/alert.mp3",
   beep: "/sounds/beep.mp3",
 };
+
+// Initialize audio context and elements
+let audio: HTMLAudioElement | null = null;
+let notificationInterval: NodeJS.Timeout | null = null;
+
+// Preload sounds for better performance
+const preloadSounds = () => {
+  Object.values(soundOptions).forEach(soundUrl => {
+    const tempAudio = new Audio(soundUrl);
+    tempAudio.preload = "auto";
+  });
+};
+
+// Try to preload sounds on module import
+try {
+  preloadSounds();
+} catch (error) {
+  console.warn("Could not preload sounds:", error);
+}
 
 export const playSound = (soundType: string = "notification", volume: number = 0.5, loop: boolean = false) => {
   try {
@@ -15,15 +31,25 @@ export const playSound = (soundType: string = "notification", volume: number = 0
       stopSound();
     }
 
+    // Get the correct sound URL or fallback to notification
+    const soundUrl = soundOptions[soundType as keyof typeof soundOptions] || soundOptions.notification;
+    
     // Create new audio instance
-    audio = new Audio(soundOptions[soundType as keyof typeof soundOptions] || soundOptions.notification);
+    audio = new Audio(soundUrl);
     audio.volume = Math.max(0, Math.min(1, volume)); // Ensure volume is between 0 and 1
     audio.loop = loop;
     
+    console.log(`Playing sound: ${soundType}, volume: ${volume}, loop: ${loop}, url: ${soundUrl}`);
+    
+    // Use promise with user interaction context
     const playPromise = audio.play();
+    
     if (playPromise !== undefined) {
       playPromise.catch((error) => {
         console.error("Error playing sound:", error);
+        if (error.name === "NotAllowedError") {
+          console.warn("Audio playback was prevented by browser. User interaction is required first.");
+        }
       });
     }
     
@@ -39,6 +65,7 @@ export const stopSound = () => {
     audio.pause();
     audio.currentTime = 0;
     audio = null;
+    console.log("Sound stopped");
     return true;
   }
   return false;
@@ -58,6 +85,7 @@ export const startAlertNotification = (soundType: string, volume: number, interv
     playSound(soundType, volume, false);
   }, intervalSeconds * 1000);
   
+  console.log(`Started alert notification with sound: ${soundType}, volume: ${volume}, interval: ${intervalSeconds}s`);
   return true;
 };
 
@@ -66,6 +94,7 @@ export const stopAlertNotification = () => {
   if (notificationInterval) {
     clearInterval(notificationInterval);
     notificationInterval = null;
+    console.log("Alert notification stopped");
     return true;
   }
   return false;

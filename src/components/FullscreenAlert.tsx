@@ -20,8 +20,19 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
     // First stop any existing alert sound
     stopAlertNotification();
     
-    // Play critical alert sound
-    playSound("alert", settings.soundVolume, true);
+    // Force user interaction to allow sound
+    const interactionHandler = () => {
+      // Play critical alert sound
+      playSound("alert", settings.soundVolume, true);
+      // Remove the event listener once triggered
+      document.removeEventListener('click', interactionHandler);
+    };
+    
+    // Try to play immediately, if blocked, wait for interaction
+    const success = playSound("alert", settings.soundVolume, true);
+    if (!success) {
+      document.addEventListener('click', interactionHandler, { once: true });
+    }
     
     // Animate in
     setTimeout(() => setIsVisible(true), 100);
@@ -29,6 +40,7 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
     // Clean up
     return () => {
       stopAlertNotification();
+      document.removeEventListener('click', interactionHandler);
     };
   }, [settings.soundVolume]);
 

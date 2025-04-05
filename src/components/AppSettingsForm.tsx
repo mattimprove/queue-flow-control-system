@@ -26,6 +26,8 @@ import { toast } from "sonner";
 import { AppSettings } from "@/types";
 import { useSettings } from "@/contexts/SettingsContext";
 import { playSound, stopSound } from "@/services/notificationService";
+import { useEffect, useState } from "react";
+import { Volume2, VolumeX } from "lucide-react";
 
 const settingsSchema = z.object({
   showUserNS: z.boolean(),
@@ -39,6 +41,8 @@ const settingsSchema = z.object({
 
 const AppSettingsForm = () => {
   const { settings, updateSettings } = useSettings();
+  const [isMuted, setIsMuted] = useState(false);
+  const [audioPermissionGranted, setAudioPermissionGranted] = useState(false);
   
   const form = useForm<AppSettings>({
     resolver: zodResolver(settingsSchema),
@@ -47,9 +51,57 @@ const AppSettingsForm = () => {
     },
   });
 
+  // Check if audio can be played on component mount
+  useEffect(() => {
+    const checkAudioPermission = async () => {
+      try {
+        // Create a temporary audio context to check for autoplay policy
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        if (audioContext.state === 'suspended') {
+          setAudioPermissionGranted(false);
+        } else {
+          setAudioPermissionGranted(true);
+        }
+      } catch (e) {
+        console.error("Audio permission check failed:", e);
+        setAudioPermissionGranted(false);
+      }
+    };
+    
+    checkAudioPermission();
+    
+    return () => {
+      // Clean up any playing sounds when component unmounts
+      stopSound();
+    };
+  }, []);
+
   const handleSoundPreview = (type: string, volume: number) => {
     stopSound();
-    playSound(type, volume);
+    if (isMuted) {
+      toast.warning("O som está mutado. Clique no botão de volume para ativar.");
+      return;
+    }
+    
+    // Attempt to play sound and provide feedback
+    const success = playSound(type, volume);
+    
+    if (!success && !audioPermissionGranted) {
+      toast.warning(
+        "Para permitir reprodução de áudio, interaja primeiro com a página.",
+        { duration: 5000 }
+      );
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (!isMuted) {
+      stopSound();
+      toast.info("Som desativado");
+    } else {
+      toast.info("Som ativado");
+    }
   };
 
   const onSubmit = (values: AppSettings) => {
@@ -233,7 +285,7 @@ const AppSettingsForm = () => {
             )}
           />
           
-          <div className="pt-2">
+          <div className="pt-2 flex items-center gap-2">
             <Button
               type="button"
               variant="outline"
@@ -241,6 +293,19 @@ const AppSettingsForm = () => {
             >
               Testar Som
             </Button>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="icon"
+              onClick={toggleMute}
+            >
+              {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+            </Button>
+            {!audioPermissionGranted && (
+              <span className="text-amber-500 text-xs ml-2">
+                (Clique em qualquer lugar da página para ativar os sons)
+              </span>
+            )}
           </div>
         </div>
 

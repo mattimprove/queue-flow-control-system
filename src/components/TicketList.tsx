@@ -6,7 +6,8 @@ import { updateTicket } from "@/services/dataService";
 import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { getTimeStatus } from "@/utils/timeUtils";
-import { startAlertNotification, stopAlertNotification } from "@/services/notificationService";
+import { startAlertNotification, stopAlertNotification, playSound } from "@/services/notificationService";
+import FullscreenAlert from "./FullscreenAlert";
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -17,6 +18,28 @@ interface TicketListProps {
 const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
   const { settings } = useSettings();
   const [alertActive, setAlertActive] = useState(false);
+  const [criticalTicket, setCriticalTicket] = useState<Ticket | null>(null);
+  
+  // Initialize audio context on first user interaction to enable auto-play
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      // Try to play a silent sound to unlock audio
+      const unlockAudio = new Audio();
+      unlockAudio.play().catch(e => console.log("Audio context not unlocked:", e));
+      
+      // Remove the event listeners
+      document.removeEventListener("click", handleUserInteraction);
+      document.removeEventListener("touchstart", handleUserInteraction);
+    };
+    
+    document.addEventListener("click", handleUserInteraction);
+    document.addEventListener("touchstart", handleUserInteraction);
+    
+    return () => {
+      document.removeEventListener("click", handleUserInteraction);
+      document.removeEventListener("touchstart", handleUserInteraction);
+    };
+  }, []);
   
   // Check if we need to play alert sounds
   useEffect(() => {
@@ -33,6 +56,9 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
     }
     
     // Check for tickets that need full-screen alert
+    let mostCriticalTicket: Ticket | null = null;
+    let maxWaitTime = -1;
+    
     pendingTickets.forEach(ticket => {
       const timeInfo = getTimeStatus(
         ticket.data_criado,
@@ -40,21 +66,27 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
         settings.criticalTimeMinutes
       );
       
-      if (timeInfo.minutes >= settings.fullScreenAlertMinutes) {
-        // TODO: Implement full-screen alert
-        // For now, just use a toast notification
-        toast.error(`Atendimento crítico pendente: ${ticket.nome}`, {
-          id: `critical-${ticket.id}`,
-          duration: 10000,
-        });
+      // Find the ticket with the longest wait time that exceeds the fullscreen threshold
+      if (timeInfo.minutes >= settings.fullScreenAlertMinutes && timeInfo.minutes > maxWaitTime) {
+        maxWaitTime = timeInfo.minutes;
+        mostCriticalTicket = ticket;
       }
     });
+    
+    // Update critical ticket for fullscreen alert
+    if (mostCriticalTicket && !criticalTicket) {
+      setCriticalTicket(mostCriticalTicket);
+      // Play a sound to notify
+      playSound("alert", settings.soundVolume, false);
+    } else if (!mostCriticalTicket && criticalTicket) {
+      setCriticalTicket(null);
+    }
     
     // Cleanup
     return () => {
       stopAlertNotification();
     };
-  }, [tickets, alertActive, settings]);
+  }, [tickets, alertActive, settings, criticalTicket]);
 
   // Update ticket status
   const handleStatusChange = async (ticketId: string, newStageNumber: number) => {
@@ -82,22 +114,32 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {tickets.map((ticket) => (
-        <TicketCard
-          key={ticket.id}
-          ticket={ticket}
-          stages={stages}
-          onStatusChange={handleStatusChange}
-        />
-      ))}
+    <>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {tickets.map((ticket) => (
+          <TicketCard
+            key={ticket.id}
+            ticket={ticket}
+            stages={stages}
+            onStatusChange={handleStatusChange}
+          />
+        ))}
+        
+        {tickets.length === 0 && (
+          <div className="col-span-full text-center p-12">
+            <p className="text-muted-foreground">Nenhum chamado encontrado</p>
+          </div>
+        )}
+      </div>
       
-      {tickets.length === 0 && (
-        <div className="col-span-full text-center p-12">
-          <p className="text-muted-foreground">Nenhum chamado encontrado</p>
-        </div>
+      {/* Fullscreen critical alert */}
+      {criticalTicket && (
+        <FullscreenAlert
+          ticket={criticalTicket}
+          onClose={() => setCriticalTicket(null)}
+        />
       )}
-    </div>
+    </>
   );
 };
 
