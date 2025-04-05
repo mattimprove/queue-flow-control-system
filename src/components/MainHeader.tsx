@@ -10,7 +10,7 @@ interface MainHeaderProps {
 }
 
 const MainHeader = ({ title, pendingAlerts = 0 }: MainHeaderProps) => {
-  const { logout, isAuthenticated } = useAuth();
+  const { logout, isAuthenticated, user } = useAuth();
 
   return (
     <header className="bg-card p-4 border-b border-border sticky top-0 z-10">
@@ -36,11 +36,13 @@ const MainHeader = ({ title, pendingAlerts = 0 }: MainHeaderProps) => {
 
           {isAuthenticated && (
             <>
-              <Link to="/settings">
-                <Button variant="ghost" size="icon" title="Configurações">
-                  <Settings className="h-5 w-5" />
-                </Button>
-              </Link>
+              {user?.isAdmin && (
+                <Link to="/settings">
+                  <Button variant="ghost" size="icon" title="Configurações">
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                </Link>
+              )}
               
               <Button variant="ghost" size="icon" onClick={logout} title="Sair">
                 <LogOut className="h-5 w-5" />
@@ -54,4 +56,3 @@ const MainHeader = ({ title, pendingAlerts = 0 }: MainHeaderProps) => {
 };
 
 export default MainHeader;
-

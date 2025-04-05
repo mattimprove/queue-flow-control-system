@@ -19,11 +19,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (event, session) => {
         if (session?.user) {
           // Verifica se o usuário está ativo usando a nova função
-          checkUserStatus(session.user.id, session.user.email).then(isActive => {
-            if (isActive) {
+          checkUserStatus(session.user.id, session.user.email).then(result => {
+            if (result.isActive) {
               const userData: User = {
                 id: session.user.id,
                 usuario: session.user.email || session.user.user_metadata?.usuario || "usuário",
+                isAdmin: result.isAdmin || false
               };
               setUser(userData);
               localStorage.setItem("queueUser", JSON.stringify(userData));
@@ -56,12 +57,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (session?.user) {
         // Verifica se o usuário está ativo usando a nova função
-        const isActive = await checkUserStatus(session.user.id, session.user.email);
+        const result = await checkUserStatus(session.user.id, session.user.email);
         
-        if (isActive) {
+        if (result.isActive) {
           const userData: User = {
             id: session.user.id,
             usuario: session.user.email || session.user.user_metadata?.usuario || "usuário",
+            isAdmin: result.isAdmin || false
           };
           setUser(userData);
           localStorage.setItem("queueUser", JSON.stringify(userData));
@@ -89,22 +91,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [navigate]);
 
   // Função para verificar se o usuário está ativo usando a função SQL personalizada
-  const checkUserStatus = async (userId: string, email: string | undefined): Promise<boolean> => {
+  const checkUserStatus = async (userId: string, email: string | undefined): Promise<{isActive: boolean, isAdmin: boolean}> => {
     try {
-      if (!email) return false;
+      if (!email) return {isActive: false, isAdmin: false};
       
-      // Usar a API de funções personalizadas do Supabase sem tipagem estrita
+      // Usar a API de funções personalizadas do Supabase com a nova estrutura de retorno
       const { data, error } = await supabase.rpc('check_user_active', { email }) as any;
       
       if (error) {
         console.error("Erro ao verificar status do usuário:", error.message);
-        return false;
+        return {isActive: false, isAdmin: false};
       }
       
-      return data === true;
+      // A função agora retorna um array com objetos que contêm is_active e is_admin
+      if (Array.isArray(data) && data.length > 0) {
+        return {
+          isActive: data[0].is_active || false,
+          isAdmin: data[0].is_admin || false
+        };
+      }
+      
+      return {isActive: false, isAdmin: false};
     } catch (error) {
       console.error("Erro ao verificar status do usuário:", error);
-      return false;
+      return {isActive: false, isAdmin: false};
     }
   };
 
@@ -112,7 +122,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
       // Primeiro verifica se o usuário está ativo usando a função SQL
-      const { data: isActive, error: checkError } = await supabase
+      const { data, error: checkError } = await supabase
         .rpc('check_user_active', { email }) as any;
       
       if (checkError) {
@@ -121,13 +131,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
       
+      // Verifica se o usuário está ativo no array de resultados retornados
+      const isActive = Array.isArray(data) && data.length > 0 ? data[0].is_active : false;
+      const isAdmin = Array.isArray(data) && data.length > 0 ? data[0].is_admin : false;
+      
       if (!isActive) {
         toast.error("Sua conta está aguardando aprovação do administrador");
         return;
       }
       
       // Se estiver ativo, tenta fazer login
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -137,10 +151,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      if (data.user) {
+      if (authData.user) {
         const userData: User = {
-          id: data.user.id,
-          usuario: data.user.email || data.user.user_metadata?.usuario || "usuário",
+          id: authData.user.id,
+          usuario: authData.user.email || authData.user.user_metadata?.usuario || "usuário",
+          isAdmin: isAdmin
         };
         setUser(userData);
         localStorage.setItem("queueUser", JSON.stringify(userData));

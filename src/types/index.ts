@@ -1,7 +1,7 @@
-
 export interface User {
   id: string;
   usuario: string;
+  isAdmin?: boolean;
 }
 
 export interface Agent {

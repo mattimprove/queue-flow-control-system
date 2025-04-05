@@ -68,6 +68,7 @@ export type Database = {
       }
       login: {
         Row: {
+          admin: boolean | null
           ativo: boolean | null
           data_atualizado: string | null
           data_criado: string | null
@@ -76,6 +77,7 @@ export type Database = {
           usuario: string
         }
         Insert: {
+          admin?: boolean | null
           ativo?: boolean | null
           data_atualizado?: string | null
           data_criado?: string | null
@@ -84,6 +86,7 @@ export type Database = {
           usuario: string
         }
         Update: {
+          admin?: boolean | null
           ativo?: boolean | null
           data_atualizado?: string | null
           data_criado?: string | null
@@ -165,7 +168,10 @@ export type Database = {
         Args: {
           email: string
         }
-        Returns: boolean
+        Returns: {
+          is_active: boolean
+          is_admin: boolean
+        }[]
       }
       insert_initial_etapas: {
         Args: Record<PropertyKey, never>
