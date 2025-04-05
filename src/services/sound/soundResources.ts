@@ -24,7 +24,7 @@ export const availableSoundFiles: string[] = [
   "cashregister.mp3",
   "notificacao.mp3",
   "senna.mp3",
-  "sirneindustrial.mp3",
+  "sireneindustrial.mp3",
   "ultrapassagem.mp3"
 ];
 
@@ -45,7 +45,7 @@ export const getSoundDisplayName = (filename: string): string => {
     case 'cashregister': return 'Caixa Registradora';
     case 'notificacao': return 'Notificação';
     case 'senna': return 'Senna';
-    case 'sirneindustrial': return 'Sirene Industrial';
+    case 'sireneindustrial': return 'Sirene Industrial';
     case 'ultrapassagem': return 'Ultrapassagem';
     default:
       // For custom files, capitalize first letter and add spaces before uppercase letters
