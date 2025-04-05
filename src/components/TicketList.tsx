@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Ticket, Stage } from "@/types";
 import TicketCard from "./TicketCard";
-import { updateTicket, getTickets } from "@/services/dataService";
+import { updateTicket, subscribeToTickets } from "@/services/dataService";
 import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { getTimeStatus } from "@/utils/timeUtils";
@@ -73,37 +72,16 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
 
   // Set up realtime subscription for tickets table
   useEffect(() => {
-    // Create a Supabase realtime channel
-    const channel = supabase
-      .channel('public:tickets')
-      .on('postgres_changes', 
-        { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'tickets' 
-        }, 
-        () => {
-          console.log('Novo ticket detectado!');
-          // Chamar função para atualizar a lista de tickets
-          onTicketChange();
-          // Tocar som de notificação para novos tickets
-          playSound('notification', settings.soundVolume);
-          toast.info('Novo chamado recebido!');
-        }
-      )
-      .on('postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'tickets'
-        },
-        () => {
-          console.log('Ticket atualizado!');
-          onTicketChange();
-        }
-      )
-      .subscribe();
-      
+    // Use the subscribeToTickets function from dataService
+    const handleTicketChange = () => {
+      onTicketChange();
+      // Play notification sound for new tickets
+      playSound('notification', settings.soundVolume);
+      toast.info('Novo chamado recebido!');
+    };
+    
+    const channel = subscribeToTickets(handleTicketChange);
+    
     console.log('Inscrição em tempo real dos tickets iniciada');
 
     // Cleanup: unsubscribe on component unmount
@@ -160,7 +138,6 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
   const handleStatusChange = async (ticketId: string, newStageNumber: number) => {
     try {
       await updateTicket(ticketId, { etapa_numero: newStageNumber });
-      onTicketChange();
       
       // If moving from "Aguardando" to any other stage, stop alert sound
       if (newStageNumber !== 1 && alertActive) {

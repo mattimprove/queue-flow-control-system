@@ -113,27 +113,39 @@ export const deleteTicket = async (id: string): Promise<void> => {
   }
 };
 
-// Habilitar realtime para tabela tickets
-export const enableRealtimeForTickets = async (): Promise<void> => {
-  try {
-    // Configurar realtime para a tabela tickets
-    const { error } = await supabase.rpc('supabase_realtime', {
-      table: 'tickets',
-      action: 'enable'
-    });
+// Configure channel for realtime updates
+// Note: This doesn't enable realtime for the table, but prepares the subscription
+export const subscribeToTickets = (callback: () => void) => {
+  console.log("Setting up realtime subscription for tickets");
+  
+  const channel = supabase
+    .channel('public:tickets')
+    .on('postgres_changes', 
+      { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'tickets' 
+      }, 
+      (payload) => {
+        console.log('Novo ticket detectado!', payload);
+        callback();
+      }
+    )
+    .on('postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'tickets'
+      },
+      (payload) => {
+        console.log('Ticket atualizado!', payload);
+        callback();
+      }
+    )
+    .subscribe();
     
-    if (error) {
-      console.error("Error enabling realtime for tickets:", error);
-    } else {
-      console.log("Realtime enabled for tickets table");
-    }
-  } catch (error) {
-    console.error("Error in enableRealtimeForTickets:", error);
-  }
+  return channel;
 };
-
-// Executar na inicialização para garantir que o realtime esteja habilitado
-enableRealtimeForTickets().catch(console.error);
 
 // Stages
 export const getStages = async (): Promise<Stage[]> => {
@@ -346,3 +358,25 @@ export const deleteAgent = async (id: string): Promise<void> => {
     throw error;
   }
 };
+
+// Habilitar realtime para tabela tickets
+export const enableRealtimeForTickets = async (): Promise<void> => {
+  try {
+    // Configurar realtime para a tabela tickets
+    const { error } = await supabase.rpc('supabase_realtime', {
+      table: 'tickets',
+      action: 'enable'
+    });
+    
+    if (error) {
+      console.error("Error enabling realtime for tickets:", error);
+    } else {
+      console.log("Realtime enabled for tickets table");
+    }
+  } catch (error) {
+    console.error("Error in enableRealtimeForTickets:", error);
+  }
+};
+
+// Executar na inicialização para garantir que o realtime esteja habilitado
+enableRealtimeForTickets().catch(console.error);
