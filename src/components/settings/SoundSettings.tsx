@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Volume2, VolumeX, Play } from "lucide-react";
-import { playSound, stopSound, unlockAudio, canPlayAudio } from "@/services/notificationService";
+import { playSound, stopSound, unlockAudio, canPlayAudio, debugAudioSystems, preloadSounds } from "@/services/notificationService";
 import { UseFormReturn } from "react-hook-form";
 import { AppSettings } from "@/types";
 
@@ -28,8 +28,14 @@ const SoundSettings = ({
   const [isPlayingSound, setIsPlayingSound] = useState(false);
 
   const handleSoundPreview = (type: string, volume: number) => {
-    // Tentar desbloquear o áudio primeiro
+    // Log audio state before playing
+    console.log("Before playing, audio system state:", debugAudioSystems());
+    
+    // Tentar desbloquear o áudio primeiro (crucial para iOS/Safari)
     unlockAudio();
+    
+    // Preload sounds
+    preloadSounds();
     
     // Parar qualquer som em reprodução
     stopSound();
@@ -44,6 +50,7 @@ const SoundSettings = ({
     // Tenta reproduzir o som e fornecer feedback
     const success = playSound(type, volume);
     
+    // Set timeout to update UI state
     setTimeout(() => setIsPlayingSound(false), 1500);
     
     if (!success) {
@@ -52,6 +59,17 @@ const SoundSettings = ({
           "Para permitir reprodução de áudio, interaja com a página primeiro.",
           { duration: 5000 }
         );
+        
+        // Add one-time click handler to try again on interaction
+        const handleInteraction = () => {
+          unlockAudio();
+          preloadSounds();
+          playSound(type, volume);
+          setAudioPermissionGranted(true);
+          document.removeEventListener('click', handleInteraction);
+        };
+        
+        document.addEventListener('click', handleInteraction, { once: true });
       } else {
         toast.error(
           "Não foi possível reproduzir o som. Verifique as configurações do seu navegador.",
@@ -60,6 +78,7 @@ const SoundSettings = ({
       }
     } else {
       toast.success("Som de teste reproduzido");
+      setAudioPermissionGranted(true);
     }
   };
 
@@ -78,9 +97,15 @@ const SoundSettings = ({
 
   // Efeito para verificar permissões de áudio sempre que o componente for montado
   useEffect(() => {
+    console.log("SoundSettings component mounted");
+    
     const checkAudioPermission = () => {
       const canPlay = canPlayAudio();
       setAudioPermissionGranted(canPlay);
+      
+      // Log current audio state
+      console.log("Audio system state:", debugAudioSystems());
+      
       return canPlay;
     };
     
@@ -89,16 +114,28 @@ const SoundSettings = ({
     // Tentar desbloquear o áudio também
     unlockAudio();
     
+    // Try preloading sounds
+    preloadSounds();
+    
     // Adicionar listener para interações do usuário para atualizar o estado
     const handleUserInteraction = () => {
+      console.log("User interaction detected in SoundSettings");
+      
       // Desbloquear o áudio
       unlockAudio();
+      
+      // Try preloading sounds after interaction
+      preloadSounds();
+      
       // Atualizar estado de permissão
       const canPlay = canPlayAudio();
       if (canPlay && !audioPermissionGranted) {
         setAudioPermissionGranted(true);
         toast.success("Sons ativados com sucesso!");
       }
+      
+      // Log updated audio state
+      console.log("After interaction audio state:", debugAudioSystems());
     };
     
     document.addEventListener('click', handleUserInteraction);

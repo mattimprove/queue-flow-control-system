@@ -6,7 +6,14 @@ import { updateTicket } from "@/services/dataService";
 import { toast } from "sonner";
 import { useSettings } from "@/contexts/SettingsContext";
 import { getTimeStatus } from "@/utils/timeUtils";
-import { startAlertNotification, stopAlertNotification, playSound } from "@/services/notificationService";
+import { 
+  startAlertNotification, 
+  stopAlertNotification, 
+  playSound, 
+  unlockAudio, 
+  debugAudioSystems,
+  preloadSounds
+} from "@/services/notificationService";
 import FullscreenAlert from "./FullscreenAlert";
 
 interface TicketListProps {
@@ -20,22 +27,46 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
   const [alertActive, setAlertActive] = useState(false);
   const [criticalTicket, setCriticalTicket] = useState<Ticket | null>(null);
   
-  // Initialize audio context on first user interaction to enable auto-play
+  // Initialize audio context on first render and preload sounds
   useEffect(() => {
+    console.log("TicketList mounted, initializing audio systems...");
+    
+    // Attempt to unlock audio early
+    unlockAudio();
+    
+    // Debug audio state
+    console.log("Initial audio state:", debugAudioSystems());
+    
+    // Initialize handler for user interaction to unlock audio
     const handleUserInteraction = () => {
-      // Try to play a silent sound to unlock audio
-      const unlockAudio = new Audio();
-      unlockAudio.play().catch(e => console.log("Audio context not unlocked:", e));
+      console.log("User interaction detected in TicketList");
       
-      // Remove the event listeners
+      // Unlock audio
+      const unlocked = unlockAudio();
+      
+      // Preload sounds
+      preloadSounds();
+      
+      // Play a test sound with very low volume to ensure the audio context is running
+      const testAudio = new Audio();
+      testAudio.volume = 0.01; // Almost silent
+      testAudio.play().catch(e => console.log("Silent test audio play failed:", e));
+      
+      // Debug current state
+      console.log("After interaction audio state:", debugAudioSystems());
+      
+      // Remove handlers after first interaction
       document.removeEventListener("click", handleUserInteraction);
       document.removeEventListener("touchstart", handleUserInteraction);
     };
     
+    // Add interaction listeners
     document.addEventListener("click", handleUserInteraction);
     document.addEventListener("touchstart", handleUserInteraction);
     
+    // Cleanup function
     return () => {
+      stopAlertNotification();
       document.removeEventListener("click", handleUserInteraction);
       document.removeEventListener("touchstart", handleUserInteraction);
     };
@@ -46,9 +77,32 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
     const pendingTickets = tickets.filter(ticket => ticket.etapa_numero === 1);
     
     if (pendingTickets.length > 0 && !alertActive) {
+      console.log("Pending tickets found, attempting to start alert notification");
+      
+      // Unlock audio first
+      unlockAudio();
+      
       // Start alert sound
-      startAlertNotification(settings.soundType, settings.soundVolume);
-      setAlertActive(true);
+      const success = startAlertNotification(settings.soundType, settings.soundVolume);
+      
+      if (success) {
+        console.log("✅ Alert notification started successfully");
+        setAlertActive(true);
+      } else {
+        console.warn("⚠️ Failed to start alert notification, audio may be blocked");
+        // Try again with user interaction
+        const retryWithInteraction = () => {
+          unlockAudio();
+          const retrySuccess = startAlertNotification(settings.soundType, settings.soundVolume);
+          if (retrySuccess) {
+            setAlertActive(true);
+            document.removeEventListener("click", retryWithInteraction);
+          }
+        };
+        
+        // Add temporary listener to retry on click
+        document.addEventListener("click", retryWithInteraction, { once: true });
+      }
     } else if (pendingTickets.length === 0 && alertActive) {
       // Stop alert sound
       stopAlertNotification();
@@ -76,8 +130,13 @@ const TicketList = ({ tickets, stages, onTicketChange }: TicketListProps) => {
     // Update critical ticket for fullscreen alert
     if (mostCriticalTicket && !criticalTicket) {
       setCriticalTicket(mostCriticalTicket);
-      // Play a sound to notify
-      playSound("alert", settings.soundVolume, false);
+      // Try to play a sound with unlock attempt first
+      unlockAudio();
+      const success = playSound("alert", settings.soundVolume, false);
+      if (!success) {
+        console.warn("⚠️ Could not play critical alert sound - may need user interaction");
+        toast.warning("Clique na tela para ativar os alertas sonoros", { duration: 5000 });
+      }
     } else if (!mostCriticalTicket && criticalTicket) {
       setCriticalTicket(null);
     }

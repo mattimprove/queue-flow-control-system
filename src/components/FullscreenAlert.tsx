@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Ticket } from "@/types";
 import { getTimeStatus } from "@/utils/timeUtils";
 import { useSettings } from "@/contexts/SettingsContext";
-import { stopAlertNotification, playSound, unlockAudio } from "@/services/notificationService";
+import { stopAlertNotification, playSound, unlockAudio, debugAudioSystems } from "@/services/notificationService";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -19,6 +19,9 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
   const [soundPlayed, setSoundPlayed] = useState(false);
 
   useEffect(() => {
+    // Log audio system state for debugging
+    console.log("FullscreenAlert mounted, audio system state:", debugAudioSystems());
+    
     // Primeiro pára qualquer som de alerta existente
     stopAlertNotification();
     
@@ -27,12 +30,15 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
     
     // Função para tentar reproduzir o som do alerta
     const tryPlaySound = () => {
+      // Solicit unlocking sound before attempting to play
+      unlockAudio();
+      
       const success = playSound("alert", settings.soundVolume, true);
       if (success) {
         setSoundPlayed(true);
-        console.log("Critical alert sound started successfully");
+        console.log("✅ Critical alert sound started successfully");
       } else {
-        console.warn("Failed to play critical alert sound, will retry on interaction");
+        console.warn("⚠️ Failed to play critical alert sound, will retry on interaction");
         toast.warning("Clique na tela para permitir sons de alerta", { duration: 5000 });
       }
     };
@@ -43,6 +49,7 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
     // Configurar event listener para interação do usuário
     const handleUserInteraction = () => {
       if (!soundPlayed) {
+        console.log("User interaction detected in FullscreenAlert, trying to play sound...");
         tryPlaySound();
       }
     };
@@ -80,6 +87,14 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
       className={`fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
+      onClick={() => {
+        // Try to unlock audio on any click on the alert
+        unlockAudio();
+        if (!soundPlayed) {
+          playSound("alert", settings.soundVolume, true);
+          setSoundPlayed(true);
+        }
+      }}
     >
       <div className="bg-card border border-destructive p-8 rounded-lg max-w-md w-full animate-pulse-attention">
         <div className="flex justify-between items-center mb-6">
