@@ -56,9 +56,12 @@ const TicketFilterBar = ({
     loadAgents();
   }, []);
   
-  // Toggle sort order
+  // Toggle sort order - FIX: We need to directly set the value, not use a function
   const toggleSortOrder = () => {
-    setSortOrder(prev => prev === "desc" ? "asc" : "desc");
+    // Instead of: setSortOrder(prev => prev === "desc" ? "asc" : "desc");
+    // We directly set the new value:
+    const newSortOrder = sortOrder === "desc" ? "asc" : "desc";
+    setSortOrder(newSortOrder);
   };
 
   return (
