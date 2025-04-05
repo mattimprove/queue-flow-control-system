@@ -11,9 +11,10 @@ import { toast } from "sonner";
 interface FullscreenAlertProps {
   ticket: Ticket;
   onClose: () => void;
+  onDismissAll: () => void; // New prop for dismissing all alerts
 }
 
-const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
+const FullscreenAlert = ({ ticket, onClose, onDismissAll }: FullscreenAlertProps) => {
   const { settings } = useSettings();
   const [isVisible, setIsVisible] = useState(false);
   const [soundPlayed, setSoundPlayed] = useState(false);
@@ -92,6 +93,13 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
     stopAlertNotification();
   };
 
+  const handleDismissAll = () => {
+    setIsVisible(false);
+    setTimeout(onDismissAll, 300); // Espera a animação terminar
+    stopAlertNotification();
+    toast.success("Todos os alertas foram dispensados");
+  };
+
   return (
     <div 
       className={`fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ${
@@ -123,8 +131,11 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
           </p>
         </div>
         
-        <div className="flex justify-end">
-          <Button variant="destructive" size="lg" onClick={handleClose}>
+        <div className="flex justify-between gap-2">
+          <Button variant="outline" onClick={handleDismissAll}>
+            Dispensar Todos os Alertas
+          </Button>
+          <Button variant="destructive" onClick={handleClose}>
             Fechar Alerta
           </Button>
         </div>

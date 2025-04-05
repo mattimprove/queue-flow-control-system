@@ -15,6 +15,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { getTickets, getStages } from "@/services";
 import { getTimeStatus } from "@/utils/timeUtils";
 import { Stage, Ticket } from "@/types";
+import { toast } from "sonner";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ const DashboardPage = () => {
   const [newTicketDialogOpen, setNewTicketDialogOpen] = useState(false);
   const [criticalTicket, setCriticalTicket] = useState<Ticket | null>(null);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
+  const [suppressAllAlerts, setSuppressAllAlerts] = useState(false); // New state to suppress all alerts
   
   const loadData = async () => {
     try {
@@ -56,6 +58,11 @@ const DashboardPage = () => {
   
   useEffect(() => {
     const checkForCriticalTickets = () => {
+      // Skip if all alerts are being suppressed
+      if (suppressAllAlerts) {
+        return;
+      }
+      
       const waitingTickets = tickets.filter((ticket) => ticket.etapa_numero === 1);
       
       for (const ticket of waitingTickets) {
@@ -81,7 +88,7 @@ const DashboardPage = () => {
     return () => {
       clearInterval(intervalId);
     };
-  }, [tickets, settings, dismissedAlerts]);
+  }, [tickets, settings, dismissedAlerts, suppressAllAlerts]);
   
   const pendingTicketsCount = tickets.filter(
     (ticket) => ticket.etapa_numero === 1
@@ -94,6 +101,19 @@ const DashboardPage = () => {
       return newSet;
     });
     setCriticalTicket(null);
+  };
+  
+  const handleDismissAllAlerts = () => {
+    // Mark all pending tickets as dismissed
+    const newDismissed = new Set(dismissedAlerts);
+    tickets
+      .filter(ticket => ticket.etapa_numero === 1)
+      .forEach(ticket => newDismissed.add(ticket.id));
+    
+    setDismissedAlerts(newDismissed);
+    setSuppressAllAlerts(true); // Suppress all future alerts for this session
+    setCriticalTicket(null);
+    toast.success("Todos os alertas foram dispensados para esta sessão");
   };
 
   const handleTicketCreated = () => {
@@ -125,7 +145,8 @@ const DashboardPage = () => {
       {criticalTicket && (
         <FullscreenAlert 
           ticket={criticalTicket} 
-          onClose={() => handleCloseAlert(criticalTicket.id)} 
+          onClose={() => handleCloseAlert(criticalTicket.id)}
+          onDismissAll={handleDismissAllAlerts}
         />
       )}
       
