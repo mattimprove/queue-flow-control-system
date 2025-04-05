@@ -88,14 +88,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [navigate]);
 
-  // Função para verificar se o usuário está ativo usando a nova função SQL
+  // Função para verificar se o usuário está ativo usando a função SQL personalizada
   const checkUserStatus = async (userId: string, email: string | undefined): Promise<boolean> => {
     try {
       if (!email) return false;
       
-      // Usa a nova função check_user_active para verificar se o usuário está ativo
-      const { data, error } = await supabase
-        .rpc('check_user_active', { email });
+      // Usar a API de funções personalizadas do Supabase sem tipagem estrita
+      const { data, error } = await supabase.rpc('check_user_active', { email }) as any;
       
       if (error) {
         console.error("Erro ao verificar status do usuário:", error.message);
@@ -114,7 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(true);
       // Primeiro verifica se o usuário está ativo usando a função SQL
       const { data: isActive, error: checkError } = await supabase
-        .rpc('check_user_active', { email });
+        .rpc('check_user_active', { email }) as any;
       
       if (checkError) {
         console.error("Erro ao verificar status do usuário:", checkError);

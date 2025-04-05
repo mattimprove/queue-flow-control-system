@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -92,7 +91,7 @@ const LoginPage = () => {
         try {
           // Verifica primeiro se o usuário existe e está ativo usando a função RPC
           const { data: isActive, error: checkError } = await supabase
-            .rpc('check_user_active', { email: values.email });
+            .rpc('check_user_active', { email: values.email }) as any;
             
           if (checkError) {
             console.error("Erro ao verificar status do usuário:", checkError);
