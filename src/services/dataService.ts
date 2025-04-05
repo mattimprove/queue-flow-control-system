@@ -1,182 +1,327 @@
 
 import { Agent, Stage, Ticket } from "@/types";
-import { mockAgents, mockStages, mockTickets } from "./mockData";
-
-// In-memory storage for mock data
-let tickets = [...mockTickets];
-let stages = [...mockStages];
-let agents = [...mockAgents];
-
-// Helper to simulate delay for async operations
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Tickets
 export const getTickets = async (): Promise<Ticket[]> => {
-  await delay(300); // Simulate network delay
-  return [...tickets];
+  try {
+    const { data, error } = await supabase
+      .from("tickets")
+      .select("*")
+      .order("data_criado", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching tickets:", error);
+      throw new Error(error.message);
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error("Error in getTickets:", error);
+    toast.error("Erro ao carregar chamados");
+    return [];
+  }
 };
 
 export const getTicketById = async (id: string): Promise<Ticket | undefined> => {
-  await delay(300);
-  return tickets.find((ticket) => ticket.id === id);
+  try {
+    const { data, error } = await supabase
+      .from("tickets")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching ticket:", error);
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in getTicketById:", error);
+    toast.error("Erro ao carregar chamado");
+    return undefined;
+  }
 };
 
 export const createTicket = async (ticket: Omit<Ticket, "id" | "data_criado" | "data_atualizado">): Promise<Ticket> => {
-  await delay(300);
-  
-  // Auto-set the stage to 1 (Aguardando) if not specified
-  if (!ticket.etapa_numero) {
-    ticket.etapa_numero = 1;
+  try {
+    // Auto-set the stage to 1 (Aguardando) if not specified
+    if (!ticket.etapa_numero) {
+      ticket.etapa_numero = 1;
+    }
+    
+    const { data, error } = await supabase
+      .from("tickets")
+      .insert(ticket)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating ticket:", error);
+      throw new Error(error.message);
+    }
+
+    toast.success("Chamado criado com sucesso");
+    return data;
+  } catch (error) {
+    console.error("Error in createTicket:", error);
+    toast.error("Erro ao criar chamado");
+    throw error;
   }
-  
-  // Check if the agent exists
-  const existingAgent = agents.find((agent) => agent.email === ticket.email_atendente);
-  
-  // If agent doesn't exist, create one automatically
-  if (!existingAgent) {
-    const newAgent: Agent = {
-      id: Date.now().toString(),
-      nome: ticket.email_atendente, // Use email as name if not provided
-      email: ticket.email_atendente,
-      ativo: true,
-      data_criado: new Date().toISOString(),
-      data_atualizado: new Date().toISOString(),
-    };
-    agents.push(newAgent);
-    ticket.atendente_id = newAgent.id;
-    ticket.nome_atendente = newAgent.nome;
-  } else {
-    // Use existing agent details
-    ticket.atendente_id = existingAgent.id;
-    ticket.nome_atendente = existingAgent.nome;
-    ticket.url_imagem_atendente = existingAgent.url_imagem;
-  }
-  
-  // Create the new ticket
-  const newTicket: Ticket = {
-    ...ticket as any,
-    id: Date.now().toString(),
-    data_criado: new Date().toISOString(),
-    data_atualizado: new Date().toISOString(),
-  };
-  
-  tickets.push(newTicket);
-  return newTicket;
 };
 
 export const updateTicket = async (id: string, updates: Partial<Ticket>): Promise<Ticket> => {
-  await delay(300);
-  
-  const index = tickets.findIndex((ticket) => ticket.id === id);
-  if (index === -1) throw new Error("Ticket not found");
-  
-  // Update ticket
-  const updatedTicket = { ...tickets[index], ...updates, data_atualizado: new Date().toISOString() };
-  tickets[index] = updatedTicket;
-  
-  return updatedTicket;
+  try {
+    const { data, error } = await supabase
+      .from("tickets")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating ticket:", error);
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in updateTicket:", error);
+    toast.error("Erro ao atualizar chamado");
+    throw error;
+  }
 };
 
 export const deleteTicket = async (id: string): Promise<void> => {
-  await delay(300);
-  tickets = tickets.filter((ticket) => ticket.id !== id);
+  try {
+    const { error } = await supabase
+      .from("tickets")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error deleting ticket:", error);
+      throw new Error(error.message);
+    }
+
+    toast.success("Chamado excluído com sucesso");
+  } catch (error) {
+    console.error("Error in deleteTicket:", error);
+    toast.error("Erro ao excluir chamado");
+    throw error;
+  }
 };
 
 // Stages
 export const getStages = async (): Promise<Stage[]> => {
-  await delay(300);
-  return [...stages];
+  try {
+    const { data, error } = await supabase
+      .from("etapas")
+      .select("*")
+      .order("numero", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching stages:", error);
+      throw new Error(error.message);
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error("Error in getStages:", error);
+    toast.error("Erro ao carregar etapas");
+    return [];
+  }
 };
 
 export const updateStage = async (id: string, updates: Partial<Stage>): Promise<Stage> => {
-  await delay(300);
-  
-  const index = stages.findIndex((stage) => stage.id === id);
-  if (index === -1) throw new Error("Stage not found");
-  
-  const updatedStage = { ...stages[index], ...updates, data_atualizado: new Date().toISOString() };
-  stages[index] = updatedStage;
-  
-  return updatedStage;
+  try {
+    const { data, error } = await supabase
+      .from("etapas")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating stage:", error);
+      throw new Error(error.message);
+    }
+
+    toast.success("Etapa atualizada com sucesso");
+    return data;
+  } catch (error) {
+    console.error("Error in updateStage:", error);
+    toast.error("Erro ao atualizar etapa");
+    throw error;
+  }
 };
 
 export const createStage = async (stage: Omit<Stage, "id" | "data_criado" | "data_atualizado">): Promise<Stage> => {
-  await delay(300);
-  
-  const newStage: Stage = {
-    ...stage as any,
-    id: Date.now().toString(),
-    data_criado: new Date().toISOString(),
-    data_atualizado: new Date().toISOString(),
-  };
-  
-  stages.push(newStage);
-  return newStage;
+  try {
+    const { data, error } = await supabase
+      .from("etapas")
+      .insert(stage)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating stage:", error);
+      throw new Error(error.message);
+    }
+
+    toast.success("Etapa criada com sucesso");
+    return data;
+  } catch (error) {
+    console.error("Error in createStage:", error);
+    toast.error("Erro ao criar etapa");
+    throw error;
+  }
 };
 
 export const deleteStage = async (id: string): Promise<void> => {
-  await delay(300);
-  stages = stages.filter((stage) => stage.id !== id);
+  try {
+    const { error } = await supabase
+      .from("etapas")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error deleting stage:", error);
+      throw new Error(error.message);
+    }
+
+    toast.success("Etapa excluída com sucesso");
+  } catch (error) {
+    console.error("Error in deleteStage:", error);
+    toast.error("Erro ao excluir etapa");
+    throw error;
+  }
 };
 
 // Agents
 export const getAgents = async (): Promise<Agent[]> => {
-  await delay(300);
-  return [...agents];
+  try {
+    const { data, error } = await supabase
+      .from("atendentes")
+      .select("*");
+
+    if (error) {
+      console.error("Error fetching agents:", error);
+      throw new Error(error.message);
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error("Error in getAgents:", error);
+    toast.error("Erro ao carregar atendentes");
+    return [];
+  }
 };
 
 export const getAgentById = async (id: string): Promise<Agent | undefined> => {
-  await delay(300);
-  return agents.find((agent) => agent.id === id);
+  try {
+    const { data, error } = await supabase
+      .from("atendentes")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching agent:", error);
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in getAgentById:", error);
+    toast.error("Erro ao carregar atendente");
+    return undefined;
+  }
 };
 
 export const getAgentByEmail = async (email: string): Promise<Agent | undefined> => {
-  await delay(300);
-  return agents.find((agent) => agent.email === email);
+  try {
+    const { data, error } = await supabase
+      .from("atendentes")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // No rows found is not a real error
+      console.error("Error fetching agent by email:", error);
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in getAgentByEmail:", error);
+    return undefined;
+  }
 };
 
 export const createAgent = async (agent: Omit<Agent, "id" | "data_criado" | "data_atualizado">): Promise<Agent> => {
-  await delay(300);
-  
-  const newAgent: Agent = {
-    ...agent as any,
-    id: Date.now().toString(),
-    data_criado: new Date().toISOString(),
-    data_atualizado: new Date().toISOString(),
-  };
-  
-  agents.push(newAgent);
-  return newAgent;
+  try {
+    const { data, error } = await supabase
+      .from("atendentes")
+      .insert(agent)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating agent:", error);
+      throw new Error(error.message);
+    }
+
+    toast.success("Atendente criado com sucesso");
+    return data;
+  } catch (error) {
+    console.error("Error in createAgent:", error);
+    toast.error("Erro ao criar atendente");
+    throw error;
+  }
 };
 
 export const updateAgent = async (id: string, updates: Partial<Agent>): Promise<Agent> => {
-  await delay(300);
-  
-  const index = agents.findIndex((agent) => agent.id === id);
-  if (index === -1) throw new Error("Agent not found");
-  
-  const updatedAgent = { ...agents[index], ...updates, data_atualizado: new Date().toISOString() };
-  agents[index] = updatedAgent;
-  
-  // Update all tickets associated with this agent
-  if (updates.nome || updates.url_imagem) {
-    tickets = tickets.map((ticket) => {
-      if (ticket.atendente_id === id) {
-        return {
-          ...ticket,
-          nome_atendente: updates.nome || ticket.nome_atendente,
-          url_imagem_atendente: updates.url_imagem || ticket.url_imagem_atendente,
-          data_atualizado: new Date().toISOString(),
-        };
-      }
-      return ticket;
-    });
+  try {
+    const { data, error } = await supabase
+      .from("atendentes")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating agent:", error);
+      throw new Error(error.message);
+    }
+
+    toast.success("Atendente atualizado com sucesso");
+    return data;
+  } catch (error) {
+    console.error("Error in updateAgent:", error);
+    toast.error("Erro ao atualizar atendente");
+    throw error;
   }
-  
-  return updatedAgent;
 };
 
 export const deleteAgent = async (id: string): Promise<void> => {
-  await delay(300);
-  agents = agents.filter((agent) => agent.id !== id);
+  try {
+    const { error } = await supabase
+      .from("atendentes")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error deleting agent:", error);
+      throw new Error(error.message);
+    }
+
+    toast.success("Atendente excluído com sucesso");
+  } catch (error) {
+    console.error("Error in deleteAgent:", error);
+    toast.error("Erro ao excluir atendente");
+    throw error;
+  }
 };
