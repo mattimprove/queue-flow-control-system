@@ -1,33 +1,20 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import MainHeader from "@/components/MainHeader";
-import TicketList from "@/components/TicketList";
-import NewTicketForm from "@/components/NewTicketForm";
 import FullscreenAlert from "@/components/FullscreenAlert";
 import Footer from "@/components/Footer";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import TicketTabView from "@/components/dashboard/TicketTabView";
+import NewTicketDialog from "@/components/dashboard/NewTicketDialog";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { getTickets, getStages } from "@/services";
 import { getTimeStatus } from "@/utils/timeUtils";
 import { Stage, Ticket } from "@/types";
-import { Plus } from "lucide-react";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -119,82 +106,21 @@ const DashboardPage = () => {
       <MainHeader title="Sistema de Fila de Atendimento" pendingAlerts={pendingTicketsCount} />
       
       <main className="flex-1 container py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Acompanhamento de Chamados</h2>
-          
-          <Button onClick={() => setNewTicketDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Novo Chamado
-          </Button>
-        </div>
+        <DashboardHeader onNewTicket={() => setNewTicketDialogOpen(true)} />
         
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid grid-cols-4 mb-6">
-            <TabsTrigger value="all">Todos</TabsTrigger>
-            <TabsTrigger value="waiting">Aguardando</TabsTrigger>
-            <TabsTrigger value="inProgress">Em Atendimento</TabsTrigger>
-            <TabsTrigger value="finished">Finalizados</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="all">
-            {isLoading ? (
-              <div className="text-center py-12">Carregando chamados...</div>
-            ) : (
-              <TicketList 
-                tickets={tickets} 
-                stages={stages} 
-                onTicketChange={loadData} 
-              />
-            )}
-          </TabsContent>
-          
-          <TabsContent value="waiting">
-            {isLoading ? (
-              <div className="text-center py-12">Carregando chamados...</div>
-            ) : (
-              <TicketList 
-                tickets={tickets.filter((ticket) => ticket.etapa_numero === 1)} 
-                stages={stages} 
-                onTicketChange={loadData}
-              />
-            )}
-          </TabsContent>
-          
-          <TabsContent value="inProgress">
-            {isLoading ? (
-              <div className="text-center py-12">Carregando chamados...</div>
-            ) : (
-              <TicketList 
-                tickets={tickets.filter((ticket) => ticket.etapa_numero === 2)} 
-                stages={stages} 
-                onTicketChange={loadData} 
-              />
-            )}
-          </TabsContent>
-          
-          <TabsContent value="finished">
-            {isLoading ? (
-              <div className="text-center py-12">Carregando chamados...</div>
-            ) : (
-              <TicketList 
-                tickets={tickets.filter((ticket) => ticket.etapa_numero === 5)} 
-                stages={stages} 
-                onTicketChange={loadData} 
-              />
-            )}
-          </TabsContent>
-        </Tabs>
+        <TicketTabView 
+          tickets={tickets}
+          stages={stages}
+          isLoading={isLoading}
+          onTicketChange={loadData}
+        />
       </main>
       
-      <Dialog open={newTicketDialogOpen} onOpenChange={setNewTicketDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Novo Chamado</DialogTitle>
-          </DialogHeader>
-          <NewTicketForm
-            onTicketCreated={handleTicketCreated}
-          />
-        </DialogContent>
-      </Dialog>
+      <NewTicketDialog 
+        open={newTicketDialogOpen}
+        onOpenChange={setNewTicketDialogOpen}
+        onTicketCreated={handleTicketCreated}
+      />
       
       {criticalTicket && (
         <FullscreenAlert 
