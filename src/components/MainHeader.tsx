@@ -15,7 +15,14 @@ const MainHeader = ({ title, pendingAlerts = 0 }: MainHeaderProps) => {
   return (
     <header className="bg-card p-4 border-b border-border sticky top-0 z-10">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-primary">{title}</h1>
+        <div className="flex items-center gap-4">
+          <img 
+            src="/lovable-uploads/4c7404d8-ef38-4ae1-b736-66ac06729fc0.png" 
+            alt="Sling Logo" 
+            className="h-8" 
+          />
+          <h1 className="text-2xl font-bold text-primary">{title}</h1>
+        </div>
 
         <div className="flex items-center gap-2">
           {pendingAlerts > 0 && (

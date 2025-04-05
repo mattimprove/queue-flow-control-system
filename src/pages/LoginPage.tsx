@@ -51,6 +51,13 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <img 
+            src="/lovable-uploads/4c7404d8-ef38-4ae1-b736-66ac06729fc0.png" 
+            alt="Sling Logo" 
+            className="h-16" 
+          />
+        </div>
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">Sistema de Fila de Atendimento</CardTitle>
