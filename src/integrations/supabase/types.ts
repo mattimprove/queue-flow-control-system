@@ -101,6 +101,7 @@ export type Database = {
           atendente_id: string | null
           data_atualizado: string | null
           data_criado: string | null
+          data_saida_etapa1: string | null
           email_atendente: string
           etapa_numero: number | null
           id: string
@@ -116,6 +117,7 @@ export type Database = {
           atendente_id?: string | null
           data_atualizado?: string | null
           data_criado?: string | null
+          data_saida_etapa1?: string | null
           email_atendente: string
           etapa_numero?: number | null
           id?: string
@@ -131,6 +133,7 @@ export type Database = {
           atendente_id?: string | null
           data_atualizado?: string | null
           data_criado?: string | null
+          data_saida_etapa1?: string | null
           email_atendente?: string
           etapa_numero?: number | null
           id?: string

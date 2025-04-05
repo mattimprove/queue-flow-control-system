@@ -48,6 +48,30 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, stages, onStatusChange 
       .toUpperCase();
   };
 
+  // Calculate waiting time if the ticket has been attended to
+  const getWaitingTimeInfo = () => {
+    if (ticket.data_saida_etapa1 && ticket.etapa_numero !== 1) {
+      const waitStart = new Date(ticket.data_criado);
+      const waitEnd = new Date(ticket.data_saida_etapa1);
+      const waitTimeMs = waitEnd.getTime() - waitStart.getTime();
+      
+      // Convert to minutes
+      const waitTimeMinutes = Math.floor(waitTimeMs / (1000 * 60));
+      
+      // Format the waiting time
+      if (waitTimeMinutes < 60) {
+        return `${waitTimeMinutes} min de espera`;
+      } else {
+        const hours = Math.floor(waitTimeMinutes / 60);
+        const minutes = waitTimeMinutes % 60;
+        return `${hours}h ${minutes}min de espera`;
+      }
+    }
+    return null;
+  };
+  
+  const waitingTimeInfo = getWaitingTimeInfo();
+
   return (
     <div className="animate-slide-in">
       <Card className="relative overflow-hidden">
@@ -100,6 +124,13 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, stages, onStatusChange 
             <div className="mb-2">
               <p className="text-sm font-medium">ID:</p>
               <p className="text-sm">{ticket.user_ns}</p>
+            </div>
+          )}
+          
+          {/* Waiting time info */}
+          {waitingTimeInfo && (
+            <div className="mb-2">
+              <p className="text-xs text-amber-600 font-medium">{waitingTimeInfo}</p>
             </div>
           )}
           

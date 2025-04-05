@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   usuario: string;
@@ -37,6 +38,7 @@ export interface Ticket {
   url_imagem_atendente?: string;
   data_criado: string;
   data_atualizado: string;
+  data_saida_etapa1?: string;
 }
 
 export interface AppSettings {
