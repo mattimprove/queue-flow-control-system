@@ -18,12 +18,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session?.user) {
-          const userData: User = {
-            id: session.user.id,
-            usuario: session.user.email || session.user.user_metadata?.usuario || "usuário",
-          };
-          setUser(userData);
-          localStorage.setItem("queueUser", JSON.stringify(userData));
+          // Verifica se o usuário está ativo
+          checkUserActive(session.user.id, session.user.email).then(isActive => {
+            if (isActive) {
+              const userData: User = {
+                id: session.user.id,
+                usuario: session.user.email || session.user.user_metadata?.usuario || "usuário",
+              };
+              setUser(userData);
+              localStorage.setItem("queueUser", JSON.stringify(userData));
+            } else {
+              // Se não estiver ativo, faz logout
+              supabase.auth.signOut().then(() => {
+                setUser(null);
+                localStorage.removeItem("queueUser");
+                toast.error("Sua conta está aguardando aprovação do administrador");
+                navigate("/login");
+              });
+            }
+          });
         } else {
           setUser(null);
           localStorage.removeItem("queueUser");
@@ -42,12 +55,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       if (session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          usuario: session.user.email || session.user.user_metadata?.usuario || "usuário",
-        };
-        setUser(userData);
-        localStorage.setItem("queueUser", JSON.stringify(userData));
+        // Verifica se o usuário está ativo
+        const isActive = await checkUserActive(session.user.id, session.user.email);
+        
+        if (isActive) {
+          const userData: User = {
+            id: session.user.id,
+            usuario: session.user.email || session.user.user_metadata?.usuario || "usuário",
+          };
+          setUser(userData);
+          localStorage.setItem("queueUser", JSON.stringify(userData));
+        } else {
+          await supabase.auth.signOut();
+          setUser(null);
+          localStorage.removeItem("queueUser");
+          toast.error("Sua conta está aguardando aprovação do administrador");
+          navigate("/login");
+        }
       } else {
         setUser(null);
         localStorage.removeItem("queueUser");
@@ -62,7 +86,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
+
+  // Função para verificar se o usuário está ativo na tabela login
+  const checkUserActive = async (userId: string, email: string | undefined): Promise<boolean> => {
+    try {
+      if (!email) return false;
+      
+      // Verifica na tabela login se o usuário está ativo
+      const { data, error } = await supabase
+        .from('login')
+        .select('ativo')
+        .eq('usuario', email)
+        .single();
+      
+      if (error || !data) {
+        console.error("Erro ao verificar status do usuário:", error?.message);
+        return false;
+      }
+      
+      return data.ativo === true;
+    } catch (error) {
+      console.error("Erro ao verificar status do usuário:", error);
+      return false;
+    }
+  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -78,6 +126,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (data.user) {
+        // Verifica se o usuário está ativo
+        const isActive = await checkUserActive(data.user.id, data.user.email);
+        
+        if (!isActive) {
+          await supabase.auth.signOut();
+          toast.error("Sua conta está aguardando aprovação do administrador");
+          return;
+        }
+        
         const userData: User = {
           id: data.user.id,
           usuario: data.user.email || data.user.user_metadata?.usuario || "usuário",

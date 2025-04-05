@@ -18,6 +18,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Email inválido" }),
@@ -30,6 +32,7 @@ const LoginPage = () => {
   const { login, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [showApprovalInfo, setShowApprovalInfo] = useState(false);
   const navigate = useNavigate();
 
   // Se o usuário já estiver autenticado, redirecione para o dashboard
@@ -62,7 +65,24 @@ const LoginPage = () => {
         }
 
         if (data) {
-          toast.success("Conta criada com sucesso! Verifique seu email para confirmar.");
+          // Tentamos criar o registro na tabela login caso ainda não exista
+          const { error: loginError } = await supabase
+            .from('login')
+            .insert([
+              { 
+                usuario: values.email,
+                senha: 'hash-não-usado', // A senha real é gerenciada pelo Supabase Auth
+                ativo: false // Novo usuário começa como inativo
+              }
+            ])
+            .select();
+          
+          if (loginError && !loginError.message.includes('duplicate')) {
+            console.error("Erro ao adicionar usuário à tabela login:", loginError);
+          }
+
+          toast.success("Conta criada com sucesso! Aguardando aprovação do administrador.");
+          setShowApprovalInfo(true);
           setIsSigningUp(false);
         }
       } else {
@@ -94,6 +114,16 @@ const LoginPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {showApprovalInfo && (
+              <Alert className="mb-4 bg-amber-50 border-amber-200">
+                <InfoIcon className="h-4 w-4 text-amber-500" />
+                <AlertTitle>Aguardando aprovação</AlertTitle>
+                <AlertDescription>
+                  Sua conta foi criada e está aguardando aprovação do administrador. Você receberá uma notificação quando sua conta for aprovada.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -133,7 +163,10 @@ const LoginPage = () => {
             <div className="mt-4 text-center">
               <Button 
                 variant="link" 
-                onClick={() => setIsSigningUp(!isSigningUp)} 
+                onClick={() => {
+                  setIsSigningUp(!isSigningUp);
+                  setShowApprovalInfo(false);
+                }} 
                 className="p-0"
               >
                 {isSigningUp 

@@ -68,6 +68,7 @@ export type Database = {
       }
       login: {
         Row: {
+          ativo: boolean | null
           data_atualizado: string | null
           data_criado: string | null
           id: string
@@ -75,6 +76,7 @@ export type Database = {
           usuario: string
         }
         Insert: {
+          ativo?: boolean | null
           data_atualizado?: string | null
           data_criado?: string | null
           id?: string
@@ -82,6 +84,7 @@ export type Database = {
           usuario: string
         }
         Update: {
+          ativo?: boolean | null
           data_atualizado?: string | null
           data_criado?: string | null
           id?: string
