@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Ticket } from "@/types";
 import { getTimeStatus } from "@/utils/timeUtils";
 import { useSettings } from "@/contexts/SettingsContext";
-import { stopAlertNotification, playSound } from "@/services/notificationService";
+import { stopAlertNotification, playSound, unlockAudio } from "@/services/notificationService";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 
 interface FullscreenAlertProps {
   ticket: Ticket;
@@ -15,36 +16,53 @@ interface FullscreenAlertProps {
 const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
   const { settings } = useSettings();
   const [isVisible, setIsVisible] = useState(false);
+  const [soundPlayed, setSoundPlayed] = useState(false);
 
   useEffect(() => {
-    // First stop any existing alert sound
+    // Primeiro pára qualquer som de alerta existente
     stopAlertNotification();
     
-    // Force user interaction to allow sound
-    const interactionHandler = () => {
-      // Play critical alert sound
-      playSound("alert", settings.soundVolume, true);
-      // Remove the event listener once triggered
-      document.removeEventListener('click', interactionHandler);
+    // Tenta desbloquear o áudio primeiro (importante para iOS/Safari)
+    unlockAudio();
+    
+    // Função para tentar reproduzir o som do alerta
+    const tryPlaySound = () => {
+      const success = playSound("alert", settings.soundVolume, true);
+      if (success) {
+        setSoundPlayed(true);
+        console.log("Critical alert sound started successfully");
+      } else {
+        console.warn("Failed to play critical alert sound, will retry on interaction");
+        toast.warning("Clique na tela para permitir sons de alerta", { duration: 5000 });
+      }
     };
     
-    // Try to play immediately, if blocked, wait for interaction
-    const success = playSound("alert", settings.soundVolume, true);
-    if (!success) {
-      document.addEventListener('click', interactionHandler, { once: true });
-    }
+    // Tenta tocar o som imediatamente
+    tryPlaySound();
     
-    // Animate in
+    // Configurar event listener para interação do usuário
+    const handleUserInteraction = () => {
+      if (!soundPlayed) {
+        tryPlaySound();
+      }
+    };
+    
+    // Adiciona event listeners para interação do usuário
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('touchstart', handleUserInteraction);
+    
+    // Animação de entrada
     setTimeout(() => setIsVisible(true), 100);
     
-    // Clean up
+    // Limpeza
     return () => {
       stopAlertNotification();
-      document.removeEventListener('click', interactionHandler);
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
     };
-  }, [settings.soundVolume]);
+  }, [settings.soundVolume, soundPlayed]);
 
-  // Format time since creation
+  // Formata o tempo desde a criação
   const { minutes } = getTimeStatus(
     ticket.data_criado, 
     settings.warningTimeMinutes, 
@@ -53,7 +71,7 @@ const FullscreenAlert = ({ ticket, onClose }: FullscreenAlertProps) => {
 
   const handleClose = () => {
     setIsVisible(false);
-    setTimeout(onClose, 300); // Wait for animation to complete
+    setTimeout(onClose, 300); // Espera a animação terminar
     stopAlertNotification();
   };
 

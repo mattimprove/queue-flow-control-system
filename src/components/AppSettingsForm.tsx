@@ -25,9 +25,9 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { AppSettings } from "@/types";
 import { useSettings } from "@/contexts/SettingsContext";
-import { playSound, stopSound } from "@/services/notificationService";
+import { playSound, stopSound, unlockAudio, canPlayAudio } from "@/services/notificationService";
 import { useEffect, useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, Play } from "lucide-react";
 
 const settingsSchema = z.object({
   showUserNS: z.boolean(),
@@ -43,6 +43,7 @@ const AppSettingsForm = () => {
   const { settings, updateSettings } = useSettings();
   const [isMuted, setIsMuted] = useState(false);
   const [audioPermissionGranted, setAudioPermissionGranted] = useState(false);
+  const [isPlayingSound, setIsPlayingSound] = useState(false);
   
   const form = useForm<AppSettings>({
     resolver: zodResolver(settingsSchema),
@@ -51,56 +52,89 @@ const AppSettingsForm = () => {
     },
   });
 
-  // Check if audio can be played on component mount
+  // Verificar se o áudio pode ser reproduzido ao montar o componente
   useEffect(() => {
-    const checkAudioPermission = async () => {
-      try {
-        // Create a temporary audio context to check for autoplay policy
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        if (audioContext.state === 'suspended') {
-          setAudioPermissionGranted(false);
-        } else {
-          setAudioPermissionGranted(true);
-        }
-      } catch (e) {
-        console.error("Audio permission check failed:", e);
-        setAudioPermissionGranted(false);
-      }
+    const checkAudioPermission = () => {
+      const canPlay = canPlayAudio();
+      setAudioPermissionGranted(canPlay);
+      return canPlay;
     };
     
     checkAudioPermission();
     
-    return () => {
-      // Clean up any playing sounds when component unmounts
-      stopSound();
+    // Tentar desbloquear o áudio também
+    unlockAudio();
+    
+    // Adicionar listener para interações do usuário para atualizar o estado
+    const handleUserInteraction = () => {
+      // Desbloquear o áudio
+      unlockAudio();
+      // Atualizar estado de permissão
+      const canPlay = canPlayAudio();
+      if (canPlay && !audioPermissionGranted) {
+        setAudioPermissionGranted(true);
+        toast.success("Sons ativados com sucesso!");
+      }
     };
-  }, []);
+    
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('touchstart', handleUserInteraction);
+    
+    return () => {
+      // Limpar quaisquer sons em reprodução quando o componente for desmontado
+      stopSound();
+      // Remover listeners
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, [audioPermissionGranted]);
 
   const handleSoundPreview = (type: string, volume: number) => {
+    // Tentar desbloquear o áudio primeiro
+    unlockAudio();
+    
+    // Parar qualquer som em reprodução
     stopSound();
+    
     if (isMuted) {
       toast.warning("O som está mutado. Clique no botão de volume para ativar.");
       return;
     }
     
-    // Attempt to play sound and provide feedback
+    setIsPlayingSound(true);
+    
+    // Tenta reproduzir o som e fornecer feedback
     const success = playSound(type, volume);
     
-    if (!success && !audioPermissionGranted) {
-      toast.warning(
-        "Para permitir reprodução de áudio, interaja primeiro com a página.",
-        { duration: 5000 }
-      );
+    setTimeout(() => setIsPlayingSound(false), 1500);
+    
+    if (!success) {
+      if (!audioPermissionGranted) {
+        toast.warning(
+          "Para permitir reprodução de áudio, interaja com a página primeiro.",
+          { duration: 5000 }
+        );
+      } else {
+        toast.error(
+          "Não foi possível reproduzir o som. Verifique as configurações do seu navegador.",
+          { duration: 5000 }
+        );
+      }
+    } else {
+      toast.success("Som de teste reproduzido");
     }
   };
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
+    stopSound();
+    
     if (!isMuted) {
-      stopSound();
       toast.info("Som desativado");
     } else {
       toast.info("Som ativado");
+      // Tenta desbloquear o áudio quando desmutado
+      unlockAudio();
     }
   };
 
@@ -239,6 +273,14 @@ const AppSettingsForm = () => {
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Configurações de Som</h2>
           
+          <div className={`p-4 rounded-md ${audioPermissionGranted ? 'bg-green-50 dark:bg-green-950/30' : 'bg-amber-50 dark:bg-amber-950/30'} mb-4`}>
+            <p className={`text-sm ${audioPermissionGranted ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'}`}>
+              {audioPermissionGranted 
+                ? "✓ Som ativado! Você pode testar os sons abaixo." 
+                : "⚠️ Sons bloqueados pelo navegador. Clique em qualquer lugar da página para ativar."}
+            </p>
+          </div>
+          
           <FormField
             control={form.control}
             name="soundType"
@@ -272,13 +314,27 @@ const AppSettingsForm = () => {
               <FormItem>
                 <FormLabel>Volume ({Math.round(field.value * 100)}%)</FormLabel>
                 <FormControl>
-                  <Slider
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    defaultValue={[field.value]}
-                    onValueChange={(vals) => field.onChange(vals[0])}
-                  />
+                  <div className="flex gap-2 items-center">
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={toggleMute}
+                      className={isMuted ? "text-destructive" : ""}
+                    >
+                      {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                    </Button>
+                    <div className="flex-grow">
+                      <Slider
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        defaultValue={[field.value]}
+                        onValueChange={(vals) => field.onChange(vals[0])}
+                        disabled={isMuted}
+                      />
+                    </div>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -290,22 +346,15 @@ const AppSettingsForm = () => {
               type="button"
               variant="outline"
               onClick={() => handleSoundPreview(form.getValues("soundType"), form.getValues("soundVolume"))}
+              disabled={isMuted || isPlayingSound}
+              className="relative"
             >
-              Testar Som
+              {isPlayingSound ? (
+                <>Tocando... <span className="animate-ping absolute right-2">🔊</span></>
+              ) : (
+                <>Testar Som <Play className="h-3 w-3 ml-2" /></>
+              )}
             </Button>
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="icon"
-              onClick={toggleMute}
-            >
-              {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-            </Button>
-            {!audioPermissionGranted && (
-              <span className="text-amber-500 text-xs ml-2">
-                (Clique em qualquer lugar da página para ativar os sons)
-              </span>
-            )}
           </div>
         </div>
 
