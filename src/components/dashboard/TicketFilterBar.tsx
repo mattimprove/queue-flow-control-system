@@ -8,9 +8,9 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Filter, ArrowDown, ArrowUp } from "lucide-react";
-import { Ticket, Agent } from "@/types";
-import { getAgents } from "@/services";
+import { Filter, ArrowDown, ArrowUp, Circle } from "lucide-react";
+import { Ticket, Agent, Stage } from "@/types";
+import { getAgents, getStages } from "@/services";
 
 interface TicketFilterBarProps {
   tickets: Ticket[];
@@ -21,6 +21,8 @@ interface TicketFilterBarProps {
   sortOrder: "desc" | "asc";
   setSortOrder: (order: "desc" | "asc") => void;
   clearFilters: () => void;
+  selectedStage: number | "all";
+  setSelectedStage: (stage: number | "all") => void;
 }
 
 const TicketFilterBar = ({
@@ -31,35 +33,45 @@ const TicketFilterBar = ({
   setSelectedAgent,
   sortOrder,
   setSortOrder,
-  clearFilters
+  clearFilters,
+  selectedStage,
+  setSelectedStage
 }: TicketFilterBarProps) => {
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [stages, setStages] = useState<Stage[]>([]);
   const [isLoadingAgents, setIsLoadingAgents] = useState(false);
+  const [isLoadingStages, setIsLoadingStages] = useState(false);
   
   // Get unique sectors from tickets
   const sectors = Array.from(new Set(tickets.filter(t => t.setor).map(t => t.setor as string)));
   
-  // Fetch agents on component mount
+  // Fetch agents and stages on component mount
   useEffect(() => {
-    const loadAgents = async () => {
+    const loadData = async () => {
       setIsLoadingAgents(true);
+      setIsLoadingStages(true);
+      
       try {
-        const agentsData = await getAgents();
+        const [agentsData, stagesData] = await Promise.all([
+          getAgents(),
+          getStages()
+        ]);
+        
         setAgents(agentsData);
+        setStages(stagesData.sort((a, b) => a.numero - b.numero));
       } catch (error) {
-        console.error("Error loading agents:", error);
+        console.error("Error loading filter data:", error);
       } finally {
         setIsLoadingAgents(false);
+        setIsLoadingStages(false);
       }
     };
     
-    loadAgents();
+    loadData();
   }, []);
   
-  // Toggle sort order - FIX: We need to directly set the value, not use a function
+  // Toggle sort order
   const toggleSortOrder = () => {
-    // Instead of: setSortOrder(prev => prev === "desc" ? "asc" : "desc");
-    // We directly set the new value:
     const newSortOrder = sortOrder === "desc" ? "asc" : "desc";
     setSortOrder(newSortOrder);
   };
@@ -71,7 +83,39 @@ const TicketFilterBar = ({
         <h3 className="text-sm font-medium">Filtros e Ordenação</h3>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Stage Filter */}
+        <div>
+          <label htmlFor="stage-filter" className="text-xs text-muted-foreground mb-1 block">
+            Filtrar por Etapa
+          </label>
+          <Select 
+            value={selectedStage === "all" ? "all" : String(selectedStage)} 
+            onValueChange={(value) => setSelectedStage(value === "all" ? "all" : Number(value))}
+          >
+            <SelectTrigger id="stage-filter" className="w-full">
+              <SelectValue placeholder="Todas as etapas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as etapas</SelectItem>
+              {stages.map(stage => (
+                <SelectItem 
+                  key={stage.id} 
+                  value={stage.numero.toString()}
+                  className="flex items-center gap-2"
+                >
+                  <div 
+                    className="w-3 h-3 rounded-full mr-1"
+                    style={{ backgroundColor: stage.cor }}
+                  />
+                  {stage.nome}
+                </SelectItem>
+              ))}
+              {isLoadingStages && <SelectItem value="loading" disabled>Carregando...</SelectItem>}
+            </SelectContent>
+          </Select>
+        </div>
+        
         {/* Sector Filter */}
         <div>
           <label htmlFor="sector-filter" className="text-xs text-muted-foreground mb-1 block">

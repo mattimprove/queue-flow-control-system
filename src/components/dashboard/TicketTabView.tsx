@@ -23,6 +23,8 @@ const TicketTabView = ({
     setSelectedSector,
     selectedAgent,
     setSelectedAgent,
+    selectedStage,
+    setSelectedStage,
     sortOrder,
     setSortOrder,
     clearFilters,
@@ -37,6 +39,8 @@ const TicketTabView = ({
         setSelectedSector={setSelectedSector}
         selectedAgent={selectedAgent}
         setSelectedAgent={setSelectedAgent}
+        selectedStage={selectedStage}
+        setSelectedStage={setSelectedStage}
         sortOrder={sortOrder}
         setSortOrder={setSortOrder}
         clearFilters={clearFilters}

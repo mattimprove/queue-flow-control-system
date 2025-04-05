@@ -1,54 +1,58 @@
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Ticket } from "@/types";
 
 export const useTicketFilters = (tickets: Ticket[]) => {
-  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>(tickets);
   const [selectedSector, setSelectedSector] = useState<string>("all");
   const [selectedAgent, setSelectedAgent] = useState<string>("all");
-  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc"); // desc = newest first
-
-  // Update filtered tickets whenever tickets, filters, or sort order change
-  useEffect(() => {
-    let result = [...tickets];
-    
-    // Apply sector filter if selected
-    if (selectedSector && selectedSector !== "all") {
-      result = result.filter(ticket => ticket.setor === selectedSector);
-    }
-    
-    // Apply agent filter if selected
-    if (selectedAgent && selectedAgent !== "all") {
-      result = result.filter(ticket => 
-        ticket.email_atendente === selectedAgent
-      );
-    }
-    
-    // Apply sorting
-    result.sort((a, b) => {
-      if (sortOrder === "desc") {
-        return new Date(b.data_criado).getTime() - new Date(a.data_criado).getTime();
-      } else {
-        return new Date(a.data_criado).getTime() - new Date(b.data_criado).getTime();
-      }
-    });
-    
-    setFilteredTickets(result);
-  }, [tickets, selectedSector, selectedAgent, sortOrder]);
+  const [selectedStage, setSelectedStage] = useState<number | "all">("all");
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   
-  // Clear all filters
+  // Apply all filters to tickets
+  const filteredTickets = useMemo(() => {
+    // Start with all tickets
+    let filtered = [...tickets];
+
+    // Filter by sector
+    if (selectedSector !== "all") {
+      filtered = filtered.filter((ticket) => ticket.setor === selectedSector);
+    }
+    
+    // Filter by agent
+    if (selectedAgent !== "all") {
+      filtered = filtered.filter((ticket) => ticket.email_atendente === selectedAgent);
+    }
+    
+    // Filter by stage
+    if (selectedStage !== "all") {
+      filtered = filtered.filter((ticket) => ticket.etapa_numero === selectedStage);
+    }
+    
+    // Sort tickets
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.data_criado);
+      const dateB = new Date(b.data_criado);
+      return sortOrder === "desc" 
+        ? dateB.getTime() - dateA.getTime() 
+        : dateA.getTime() - dateB.getTime();
+    });
+  }, [tickets, selectedSector, selectedAgent, selectedStage, sortOrder]);
+  
   const clearFilters = () => {
     setSelectedSector("all");
     setSelectedAgent("all");
+    setSelectedStage("all");
     setSortOrder("desc");
   };
-
+  
   return {
     filteredTickets,
     selectedSector,
     setSelectedSector,
     selectedAgent,
     setSelectedAgent,
+    selectedStage,
+    setSelectedStage,
     sortOrder,
     setSortOrder,
     clearFilters,
