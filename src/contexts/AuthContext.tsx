@@ -100,12 +100,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .eq('usuario', email)
         .single();
       
-      if (error || !data) {
-        console.error("Erro ao verificar status do usuário:", error?.message);
+      if (error) {
+        console.error("Erro ao verificar status do usuário:", error.message);
         return false;
       }
       
-      return data.ativo === true;
+      // Verifica se data.ativo existe e é true
+      return data?.ativo === true;
     } catch (error) {
       console.error("Erro ao verificar status do usuário:", error);
       return false;
