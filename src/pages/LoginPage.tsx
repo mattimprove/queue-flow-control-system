@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -16,6 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Email inválido" }),
@@ -25,9 +27,15 @@ const loginSchema = z.object({
 type FormValues = z.infer<typeof loginSchema>;
 
 const LoginPage = () => {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false);
   const navigate = useNavigate();
+
+  // Se o usuário já estiver autenticado, redirecione para o dashboard
+  if (isAuthenticated) {
+    navigate("/dashboard");
+  }
 
   const form = useForm<FormValues>({
     resolver: zodResolver(loginSchema),
@@ -40,9 +48,30 @@ const LoginPage = () => {
   const onSubmit = async (values: FormValues) => {
     try {
       setIsLoading(true);
-      await login(values.email, values.password);
+      
+      if (isSigningUp) {
+        // Criar conta
+        const { data, error } = await supabase.auth.signUp({
+          email: values.email,
+          password: values.password,
+        });
+
+        if (error) {
+          toast.error(error.message || "Erro ao criar conta");
+          return;
+        }
+
+        if (data) {
+          toast.success("Conta criada com sucesso! Verifique seu email para confirmar.");
+          setIsSigningUp(false);
+        }
+      } else {
+        // Login
+        await login(values.email, values.password);
+      }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Erro:", error);
+      toast.error("Ocorreu um erro no processo de autenticação");
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +89,9 @@ const LoginPage = () => {
         </div>
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Sistema de Fila de Atendimento</CardTitle>
+            <CardTitle className="text-2xl text-center">
+              {isSigningUp ? "Criar Nova Conta" : "Sistema de Fila de Atendimento"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -92,10 +123,24 @@ const LoginPage = () => {
                   )}
                 />
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Entrando..." : "Entrar"}
+                  {isLoading 
+                    ? (isSigningUp ? "Criando conta..." : "Entrando...") 
+                    : (isSigningUp ? "Criar Conta" : "Entrar")}
                 </Button>
               </form>
             </Form>
+            
+            <div className="mt-4 text-center">
+              <Button 
+                variant="link" 
+                onClick={() => setIsSigningUp(!isSigningUp)} 
+                className="p-0"
+              >
+                {isSigningUp 
+                  ? "Já possui uma conta? Faça login" 
+                  : "Não tem uma conta? Cadastre-se"}
+              </Button>
+            </div>
           </CardContent>
           <CardFooter className="border-t text-center text-sm px-6 py-4 flex-col gap-2">
             <p className="text-muted-foreground w-full">Sistema de Gerenciamento de Filas v1.0</p>
