@@ -25,6 +25,7 @@ const SoundTypeSelector = ({ form, soundType, label }: SoundTypeSelectorProps) =
       case 'beep': return 'Som de Beep';
       case 'podium': return 'Som de Pódio';
       case 'firstPlace': return 'Som de Primeiro Lugar';
+      case 'alerta': return 'Som de Alerta (Alt)';
       default:
         // For custom files, capitalize first letter and add spaces before uppercase letters
         return nameWithoutExtension

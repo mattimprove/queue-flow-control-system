@@ -9,12 +9,14 @@ export const soundOptions = {
 };
 
 // Available sound files in the sounds directory
+// This should be updated with actual files from the server
 export const availableSoundFiles: string[] = [
   "notification.mp3",
   "alert.mp3",
   "beep.mp3", 
   "podium.mp3",
   "firstPlace.mp3",
+  "alerta.mp3", // Adding available file from read-only-files
   // Add other sound files that exist in the public/sounds directory
 ];
 
@@ -80,4 +82,3 @@ export const getAudio = (soundType: string): HTMLAudioElement => {
 
 // Don't try to preload sounds on initial module import
 // We'll call this explicitly after user interaction
-
